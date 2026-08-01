@@ -15,7 +15,6 @@ worker/node_modules/
 .dev.vars
 .env*
 .firebase/
-hosting/public/__/firebase/
 media/*.xml
 media/*.wav
 media/promo-frame.png

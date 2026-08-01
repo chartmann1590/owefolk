@@ -6,11 +6,24 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 object Telemetry {
+    private const val PREFERENCES = "telemetry"
+    private const val COLLECTION_ENABLED = "collection_enabled"
     private var analytics: FirebaseAnalytics? = null
     private val forbidden = setOf("amount", "name", "email", "note", "handle", "token", "group_id", "user_id")
 
     fun initialize(context: Context) {
         analytics = FirebaseAnalytics.getInstance(context)
+        setCollectionEnabled(context, isCollectionEnabled(context))
+    }
+
+    fun isCollectionEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(COLLECTION_ENABLED, true)
+
+    fun setCollectionEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            .edit().putBoolean(COLLECTION_ENABLED, enabled).apply()
+        (analytics ?: FirebaseAnalytics.getInstance(context)).setAnalyticsCollectionEnabled(enabled)
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(enabled)
     }
 
     fun event(name: String, parameters: Map<String, Any> = emptyMap()) {

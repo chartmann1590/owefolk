@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -205,11 +206,9 @@ fun ActivityScreen(activities: List<ActivityItem>) {
 }
 
 @Composable
-fun ProfileScreen(user: Person, onProviderChange: (PaymentProvider) -> Unit, onDeleteAccount: () -> Unit) {
+fun ProfileScreen(user: Person, onProviderChange: (PaymentProvider) -> Unit, onSignOut: () -> Unit, onDeleteAccount: () -> Unit) {
     val context = LocalContext.current
-    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
-    var analyticsEnabled by remember { mutableStateOf(true) }
-    var digestEnabled by remember { mutableStateOf(true) }
+    var analyticsEnabled by remember { mutableStateOf(com.charles.owefolk.observability.Telemetry.isCollectionEnabled(context)) }
     var confirmDeletion by remember { mutableStateOf(false) }
     var chooseProvider by remember { mutableStateOf(false) }
     LazyColumn(
@@ -231,20 +230,15 @@ fun ProfileScreen(user: Person, onProviderChange: (PaymentProvider) -> Unit, onD
                 chooseProvider = true
             }
         }
-        item { SettingsRow(Icons.Default.CurrencyExchange, "Default currency", "USD", onClick = {}) }
-        item { SectionTitle("Notifications & privacy") }
+        item { SectionTitle("Privacy") }
         item {
-            SettingsSwitch(Icons.Default.Summarize, "Friendly digest", "Weekly, with quiet hours", digestEnabled) { digestEnabled = it }
-        }
-        item {
-            SettingsSwitch(Icons.Default.Analytics, "Privacy-safe analytics", "No names, notes, or amounts", analyticsEnabled) { analyticsEnabled = it }
-        }
-        item {
-            SettingsRow(Icons.Default.Notifications, "Enable notifications", "Invites, changes, and confirmations") {
-                if (Build.VERSION.SDK_INT >= 33) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            SettingsSwitch(Icons.Default.Analytics, "Privacy-safe diagnostics", "Crash and usage collection", analyticsEnabled) {
+                analyticsEnabled = it
+                com.charles.owefolk.observability.Telemetry.setCollectionEnabled(context, it)
             }
         }
-        item { SettingsRow(Icons.Default.Shield, "Privacy policy", "How Owefolk protects your data") { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://owefolk-20260801.web.app/privacy"))) } }
+        item { SettingsRow(Icons.Default.Shield, "Privacy policy", "How Owefolk protects your data") { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://chartmann1590.github.io/owefolk/privacy.html"))) } }
+        item { SettingsRow(Icons.AutoMirrored.Filled.Logout, "Sign out", "Keep your shared ledger in Firebase", onClick = onSignOut) }
         item { SettingsRow(Icons.Default.DeleteOutline, "Delete account", "Remove your account and personal data", destructive = true, onClick = { confirmDeletion = true }) }
     }
     if (chooseProvider) AlertDialog(

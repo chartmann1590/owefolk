@@ -42,8 +42,15 @@ service cloud.firestore {
       match /members/{uid} {
         allow read: if isMember(groupId);
         allow create: if isSelf(uid)
-          && getAfter(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid
-          && request.resource.data.uid == uid;
+          && request.resource.data.uid == uid
+          && (
+            getAfter(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid
+            || (
+              request.resource.data.inviteId is string
+              && getAfter(/databases/$(database)/documents/groups/$(groupId)/invites/$(request.resource.data.inviteId)).data.status == 'accepted'
+              && getAfter(/databases/$(database)/documents/groups/$(groupId)/invites/$(request.resource.data.inviteId)).data.acceptedBy == request.auth.uid
+            )
+          );
         allow update: if isSelf(uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'deleted']);
         allow delete: if false;
@@ -89,12 +96,24 @@ service cloud.firestore {
       }
 
       match /invites/{inviteId} {
-        allow read: if false;
+        allow get: if signedIn()
+          && (
+            (resource.data.status == 'open' && resource.data.expiresAt > request.time)
+            || (resource.data.status == 'accepted' && resource.data.acceptedBy == request.auth.uid)
+          );
+        allow list: if false;
         allow create: if isMember(groupId)
           && request.resource.data.createdBy == request.auth.uid
           && request.resource.data.groupId == groupId
-          && request.resource.data.status == 'open';
-        allow update, delete: if false;
+          && request.resource.data.status == 'open'
+          && request.resource.data.expiresAt > request.time;
+        allow update: if signedIn()
+          && resource.data.status == 'open'
+          && resource.data.expiresAt > request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acceptedBy', 'acceptedAt'])
+          && request.resource.data.status == 'accepted'
+          && request.resource.data.acceptedBy == request.auth.uid;
+        allow delete: if false;
       }
     }
 

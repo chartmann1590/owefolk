@@ -9,6 +9,7 @@ interface OwefolkRepository {
     val dashboard: Flow<Dashboard>
     suspend fun createGroup(name: String, emoji: String, currencyCode: String): String
     suspend fun createInvite(groupId: String): String
+    suspend fun acceptInvite(groupId: String, token: String)
     suspend fun addExpense(expense: NewExpense)
     suspend fun startSettlement(groupId: String, recipientId: String, amountMinorUnits: Long, provider: PaymentProvider)
     suspend fun confirmSettlement(settlementId: String)

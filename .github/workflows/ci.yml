@@ -20,18 +20,13 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: |
-            functions/package-lock.json
-            worker/package-lock.json
+          cache-dependency-path: worker/package-lock.json
       - name: Restore Firebase Android configuration
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
         run: printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/google-services.json
       - name: Android tests and debug build
         run: ./gradlew testDebugUnitTest assembleDebug
-      - name: Functions build and tests
-        working-directory: functions
-        run: npm ci && npm run build && npm test && npm audit --omit=dev
       - name: Worker type check
         working-directory: worker
         run: npm ci && npm run check && npm audit --omit=dev

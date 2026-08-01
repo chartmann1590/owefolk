@@ -28,7 +28,6 @@ import com.charles.owefolk.ui.theme.Coral
 import com.charles.owefolk.ui.theme.Indigo
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FieldValue
@@ -91,18 +90,7 @@ fun AuthScreen() {
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp), enabled = email.contains('@') && password.length >= 8 && !busy,
                     ) { Text("Continue with email") }
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                busy = true
-                                message = runCatching { sendEmailLink(context, email); "Check your email for a secure sign-in link." }
-                                    .getOrElse { it.message ?: "Could not send the email" }
-                                busy = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(52.dp), enabled = email.contains('@') && !busy,
-                    ) { Text("Email me a sign-in link") }
-                    message?.let { Text(it, color = if (it.startsWith("Check")) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
+                    message?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                 }
             }
             Spacer(Modifier.height(18.dp))
@@ -138,19 +126,12 @@ private suspend fun signInWithEmail(email: String, password: String) {
 private suspend fun createOrUpdateProfile(user: com.google.firebase.auth.FirebaseUser) {
     val name = user.displayName ?: "Friend"
     val initials = name.split(' ').filter(String::isNotBlank).take(2).joinToString("") { it.first().uppercase() }.ifBlank { "OF" }
-    FirebaseFirestore.getInstance().collection("users").document(user.uid).set(
-        mapOf("name" to name, "initials" to initials, "email" to user.email, "color" to 0xFF5B4BD8,
-            "preferredProvider" to "VENMO", "createdAt" to FieldValue.serverTimestamp()),
-        com.google.firebase.firestore.SetOptions.merge(),
-    ).await()
-}
-
-private suspend fun sendEmailLink(context: Context, email: String) {
-    val settings = ActionCodeSettings.newBuilder()
-        .setUrl("https://owefolk-20260801.web.app")
-        .setHandleCodeInApp(true)
-        .setAndroidPackageName("com.charles.owefolk", true, null)
-        .build()
-    FirebaseAuth.getInstance().sendSignInLinkToEmail(email, settings).await()
-    context.getSharedPreferences("auth", Context.MODE_PRIVATE).edit().putString("pending_email", email).apply()
+    val profile = FirebaseFirestore.getInstance().collection("users").document(user.uid)
+    if (profile.get().await().exists()) {
+        profile.set(mapOf("name" to name, "initials" to initials, "color" to 0xFF5B4BD8,
+            "preferredProvider" to "VENMO"), com.google.firebase.firestore.SetOptions.merge()).await()
+    } else {
+        profile.set(mapOf("name" to name, "initials" to initials, "email" to user.email, "color" to 0xFF5B4BD8,
+            "preferredProvider" to "VENMO", "createdAt" to FieldValue.serverTimestamp())).await()
+    }
 }

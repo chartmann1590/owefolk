@@ -32,6 +32,8 @@ class AppViewModel(private val repository: OwefolkRepository) : ViewModel() {
         mapOf("split_mode" to expense.splitMode.name.lowercase(), "participant_count" to expense.participantIds.size)) { repository.addExpense(expense) }
     fun createGroup(name: String, emoji: String, currency: String, onDone: () -> Unit) = action("Group created", onDone, "group_created") { repository.createGroup(name, emoji, currency) }
     fun createInvite(groupId: String, onReady: (String) -> Unit) = action("Invite ready", event = "invite_shared") { onReady(repository.createInvite(groupId)) }
+    fun acceptInvite(groupId: String, token: String, onDone: () -> Unit) =
+        action("Group joined", onDone, "invite_accepted") { repository.acceptInvite(groupId, token) }
     fun startSettlement(groupId: String, recipientId: String, amount: Long, provider: com.charles.owefolk.domain.PaymentProvider) =
         action("Payment marked sent — waiting for confirmation", event = "settlement_started", parameters = mapOf("provider" to provider.name.lowercase())) { repository.startSettlement(groupId, recipientId, amount, provider) }
     fun confirmSettlement(id: String) = action("Payment confirmed", event = "settlement_confirmed") { repository.confirmSettlement(id) }

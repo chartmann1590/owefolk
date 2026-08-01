@@ -56,6 +56,15 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
         return
     }
 
+    LaunchedEffect(dashboard.user.id) {
+        val invitePreferences = context.getSharedPreferences("invites", android.content.Context.MODE_PRIVATE)
+        val token = invitePreferences.getString("token", null)
+        val groupId = invitePreferences.getString("group", null)
+        if (token != null && groupId != null) {
+            viewModel.acceptInvite(groupId, token) { invitePreferences.edit().clear().apply() }
+        }
+    }
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     Scaffold(
@@ -102,6 +111,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
             composable(RootDestination.ACTIVITY.route) { ActivityScreen(dashboard.activities) }
             composable(RootDestination.PROFILE.route) {
                 ProfileScreen(dashboard.user, onProviderChange = viewModel::updatePreferredProvider,
+                    onSignOut = { FirebaseAuth.getInstance().signOut() },
                     onDeleteAccount = viewModel::deleteAccount)
             }
         }

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.security.MessageDigest
 import java.time.Instant
 import java.util.Date
 import java.util.UUID
@@ -32,7 +31,11 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         }
 
         fun refresh(uid: String) {
-            launch { runCatching { loadDashboard(uid, groupIds) }.onSuccess(::trySend).onFailure(::close) }
+            launch {
+                runCatching { loadDashboard(uid, groupIds) }
+                    .onSuccess(::trySend)
+                    .onFailure { Telemetry.record(it, "dashboard_refresh") }
+            }
         }
 
         fun observe(uid: String) {
@@ -94,12 +97,41 @@ class FirebaseOwefolkRepository : OwefolkRepository {
 
     override suspend fun createInvite(groupId: String): String {
         val token = UUID.randomUUID().toString() + UUID.randomUUID().toString()
-        val hash = MessageDigest.getInstance("SHA-256").digest(token.toByteArray()).joinToString("") { "%02x".format(it) }
-        db.collection("groups").document(groupId).collection("invites").document(hash).set(mapOf(
+        db.collection("groups").document(groupId).collection("invites").document(token).set(mapOf(
             "groupId" to groupId, "createdBy" to uid(), "status" to "open", "createdAt" to FieldValue.serverTimestamp(),
             "expiresAt" to Timestamp(Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)),
         )).await()
-        return "https://owefolk-20260801.web.app/invite?token=$token&group=$groupId"
+        return "https://chartmann1590.github.io/owefolk/invite.html?token=$token&group=$groupId"
+    }
+
+    override suspend fun acceptInvite(groupId: String, token: String) {
+        require(token.length in 64..96 && token.all { it.isLetterOrDigit() || it == '-' }) { "Invalid invite" }
+        val uid = uid()
+        val group = db.collection("groups").document(groupId)
+        val inviteRef = group.collection("invites").document(token)
+        val invite = inviteRef.get().await()
+        require(invite.exists()) { "Invite is no longer available" }
+        if (invite.getString("status") == "accepted" && invite.getString("acceptedBy") == uid) return
+        require(invite.getString("status") == "open") { "Invite is no longer available" }
+        require(invite.getTimestamp("expiresAt")?.toDate()?.after(Date()) == true) { "Invite has expired" }
+        val user = db.collection("users").document(uid).get().await()
+        val batch = db.batch()
+        batch.update(inviteRef, mapOf(
+            "status" to "accepted", "acceptedBy" to uid, "acceptedAt" to FieldValue.serverTimestamp(),
+        ))
+        batch.set(group.collection("members").document(uid), mapOf(
+            "uid" to uid, "name" to (user.getString("name") ?: "Friend"),
+            "initials" to (user.getString("initials") ?: "OF"), "color" to (user.getLong("color") ?: 0xFF5B4BD8),
+            "role" to "member", "inviteId" to token, "joinedAt" to FieldValue.serverTimestamp(),
+        ))
+        batch.set(db.collection("userGroups").document(uid).collection("groups").document(groupId),
+            mapOf("groupId" to groupId, "joinedAt" to FieldValue.serverTimestamp()))
+        batch.commit().await()
+        group.collection("activity").add(mapOf(
+            "kind" to "member", "title" to "${user.getString("name") ?: "A friend"} joined the group",
+            "detail" to "Invite accepted", "timestamp" to FieldValue.serverTimestamp(),
+        )).await()
+        group.update("updatedAt", FieldValue.serverTimestamp()).await()
     }
 
     override suspend fun addExpense(expense: NewExpense) {

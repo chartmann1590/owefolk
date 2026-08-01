@@ -18,12 +18,11 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="owefolk-20260801.web.app" android:pathPrefix="/invite" />
-                <data android:scheme="https" android:host="owefolk-20260801.web.app" android:pathPrefix="/__/auth/links" />
+                <data android:scheme="owefolk" android:host="invite" />
             </intent-filter>
         </activity>
 

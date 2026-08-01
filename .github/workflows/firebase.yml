@@ -1,4 +1,4 @@
-name: Firebase production deploy
+name: Firebase free services deploy
 
 on:
   workflow_dispatch:
@@ -8,7 +8,6 @@ on:
       - "firebase.json"
       - "firestore.rules"
       - "firestore.indexes.json"
-      - "hosting/public/**"
 
 concurrency:
   group: firebase-production
@@ -28,5 +27,5 @@ jobs:
         run: |
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
-      - name: Deploy Auth, Firestore, and Hosting
-        run: npx --yes firebase-tools@latest deploy --project owefolk-20260801 --only auth,firestore,hosting --non-interactive
+      - name: Deploy Auth and Firestore
+        run: npx --yes firebase-tools@latest deploy --project owefolk-20260801 --only auth,firestore --non-interactive

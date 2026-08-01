@@ -5,13 +5,11 @@ interface Env {
 }
 
 const allowedOrigins = new Set([
-  "https://owefolk-20260801.web.app",
-  "https://owefolk-20260801.firebaseapp.com",
   "https://chartmann1590.github.io",
 ]);
 
 function cors(origin: string | null): HeadersInit {
-  const allowed = origin && allowedOrigins.has(origin) ? origin : "https://owefolk-20260801.web.app";
+  const allowed = origin && allowedOrigins.has(origin) ? origin : "https://chartmann1590.github.io";
   return {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Headers": "Content-Type",
