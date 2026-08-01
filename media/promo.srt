@@ -1,0 +1,27 @@
+1
+00:00:00,000 --> 00:00:08,000
+Meet Owefolk: the shared-expense app built for friends, not spreadsheets.
+
+2
+00:00:08,000 --> 00:00:18,000
+Sign in securely with Firebase, create a group, and see exactly where everyone stands.
+
+3
+00:00:18,000 --> 00:00:28,000
+Add a dinner, rental, or trip cost, then split equally, exactly, or by percentage.
+
+4
+00:00:28,000 --> 00:00:38,000
+Settle with Venmo, Cash App, PayPal, Zelle, or another real payment method.
+
+5
+00:00:38,000 --> 00:00:46,000
+The payer marks it sent, the recipient confirms it, and every update stays visible.
+
+6
+00:00:46,000 --> 00:00:55,000
+Preferences, privacy, encrypted deletion, analytics, performance, and crash reporting are built in.
+
+7
+00:00:55,000 --> 00:00:57,800
+Owefolk: fair math, clear friendships.

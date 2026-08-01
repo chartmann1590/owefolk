@@ -1,0 +1,31 @@
+{
+  "functions": [{ "source": "functions", "codebase": "default", "ignore": ["node_modules", ".git", "firebase-debug.log", "*.local"] }],
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Owefolk",
+        "supportEmail": "charles.h.hartmann1@gmail.com",
+        "authorizedRedirectUris": [
+          "https://chartmann1590.github.io/owefolk"
+        ]
+      }
+    }
+  },
+  "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" },
+  "hosting": {
+    "public": "hosting/public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
+    "rewrites": [{ "source": "/invite/**", "destination": "/invite.html" }],
+    "headers": [{ "source": "/.well-known/assetlinks.json", "headers": [{ "key": "Content-Type", "value": "application/json" }] }]
+  },
+  "emulators": {
+    "auth": { "port": 9099 },
+    "functions": { "port": 5001 },
+    "firestore": { "port": 8080 },
+    "hosting": { "port": 5000 },
+    "ui": { "enabled": true, "port": 4000 },
+    "singleProjectMode": true
+  }
+}

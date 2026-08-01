@@ -1,0 +1,15 @@
+{
+  "name": "owefolk-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "migrate": "wrangler d1 migrations apply owefolk-prod --remote"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "typescript": "latest",
+    "wrangler": "latest"
+  }
+}

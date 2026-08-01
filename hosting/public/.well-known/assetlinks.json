@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.charles.owefolk",
+      "sha256_cert_fingerprints": ["0C:D9:EA:45:22:42:95:D1:AB:A0:2C:09:5C:AA:01:A7:90:16:70:12:5F:99:A3:BE:22:B3:BA:84:78:82:37:C7"]
+    }
+  }
+]

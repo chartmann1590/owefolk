@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "owefolk-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "observability": { "enabled": true },
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "owefolk-prod",
+      "database_id": "59356b43-5192-4c62-9bf4-0d029d8bfcdd"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+name: Signed Android release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Restore protected build inputs
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/google-services.json
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/owefolk-release.jks"
+      - name: Build signed APK and App Bundle
+        env:
+          OWEFOLK_KEYSTORE_PATH: ${{ runner.temp }}/owefolk-release.jks
+          OWEFOLK_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          OWEFOLK_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          OWEFOLK_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew testDebugUnitTest assembleRelease bundleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: owefolk-android-release
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
+      - name: Attach binaries to tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" app/build/outputs/apk/release/app-release.apk app/build/outputs/bundle/release/app-release.aab --generate-notes --title "Owefolk $GITHUB_REF_NAME"

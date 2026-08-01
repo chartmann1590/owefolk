@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function isMember(groupId) {
+      return signedIn() && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid));
+    }
+    function validText(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid);
+      allow create: if isSelf(uid)
+        && validText(request.resource.data.name, 80)
+        && validText(request.resource.data.initials, 4)
+        && request.resource.data.preferredProvider in ['VENMO', 'CASH_APP', 'PAYPAL', 'ZELLE', 'OTHER', 'CASH'];
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'preferredProvider', 'analyticsEnabled', 'digestEnabled', 'quietHours']);
+      allow delete: if isSelf(uid);
+
+      match /tokens/{tokenId} {
+        allow read: if false;
+        allow create, update, delete: if isSelf(uid);
+      }
+    }
+
+    match /userGroups/{uid}/groups/{groupId} {
+      allow read, delete: if isSelf(uid);
+      allow create, update: if isSelf(uid) && request.resource.data.groupId == groupId;
+    }
+
+    match /groups/{groupId} {
+      allow read: if isMember(groupId);
+      allow create: if signedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && validText(request.resource.data.name, 60)
+        && request.resource.data.currencyCode.matches('^[A-Z]{3}$');
+      allow update: if isMember(groupId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']);
+      allow delete: if false;
+
+      match /members/{uid} {
+        allow read: if isMember(groupId);
+        allow create: if isSelf(uid)
+          && getAfter(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid
+          && request.resource.data.uid == uid;
+        allow update: if isSelf(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'deleted']);
+        allow delete: if false;
+      }
+
+      match /expenses/{expenseId} {
+        allow read: if isMember(groupId);
+        allow create: if isMember(groupId)
+          && request.resource.data.paidById == request.auth.uid
+          && validText(request.resource.data.title, 80)
+          && request.resource.data.totalMinorUnits is int
+          && request.resource.data.totalMinorUnits > 0
+          && request.resource.data.allocations is list
+          && request.resource.data.allocations.size() > 0
+          && request.resource.data.splitMode in ['equal', 'exact', 'percent']
+          && request.resource.data.deleted == false;
+        allow update, delete: if false;
+      }
+
+      match /settlements/{settlementId} {
+        allow read: if isMember(groupId);
+        allow create: if isMember(groupId)
+          && request.resource.data.payerId == request.auth.uid
+          && request.resource.data.recipientId != request.auth.uid
+          && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.resource.data.recipientId))
+          && request.resource.data.amountMinorUnits is int
+          && request.resource.data.amountMinorUnits > 0
+          && request.resource.data.status == 'sent';
+        allow update: if isMember(groupId)
+          && resource.data.recipientId == request.auth.uid
+          && resource.data.status == 'sent'
+          && request.resource.data.status in ['confirmed', 'rejected']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      match /activity/{activityId} {
+        allow read: if isMember(groupId);
+        allow create: if isMember(groupId)
+          && request.resource.data.kind in ['expense', 'payment', 'reminder', 'member']
+          && validText(request.resource.data.title, 180);
+        allow update, delete: if false;
+      }
+
+      match /invites/{inviteId} {
+        allow read: if false;
+        allow create: if isMember(groupId)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.groupId == groupId
+          && request.resource.data.status == 'open';
+        allow update, delete: if false;
+      }
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}
