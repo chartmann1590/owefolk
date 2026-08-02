@@ -1,4 +1,4 @@
-name: Signed Android release
+name: Google Play signed release
 
 on:
   workflow_dispatch:
@@ -33,10 +33,13 @@ jobs:
           OWEFOLK_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           OWEFOLK_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           OWEFOLK_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
+          ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
         run: ./gradlew testDebugUnitTest assembleRelease bundleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: owefolk-android-release
+          name: owefolk-google-play-release
           path: |
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/bundle/release/app-release.aab

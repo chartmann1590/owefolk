@@ -2,7 +2,9 @@ package com.charles.owefolk.ui
 
 import android.Manifest
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -35,11 +37,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.charles.owefolk.domain.*
+import com.charles.owefolk.observability.Telemetry
+import com.charles.owefolk.receipt.ReceiptScanner
 import com.charles.owefolk.ui.theme.Coral
 import com.charles.owefolk.ui.theme.Indigo
 import com.charles.owefolk.ui.theme.Mint
 import java.time.Duration
 import java.time.Instant
+import java.util.Locale
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -206,7 +212,14 @@ fun ActivityScreen(activities: List<ActivityItem>) {
 }
 
 @Composable
-fun ProfileScreen(user: Person, onProviderChange: (PaymentProvider) -> Unit, onSignOut: () -> Unit, onDeleteAccount: () -> Unit) {
+fun ProfileScreen(
+    user: Person,
+    onProviderChange: (PaymentProvider) -> Unit,
+    onSignOut: () -> Unit,
+    onDeleteAccount: () -> Unit,
+    showAdPrivacyOptions: Boolean,
+    onAdPrivacyOptions: () -> Unit,
+) {
     val context = LocalContext.current
     var analyticsEnabled by remember { mutableStateOf(com.charles.owefolk.observability.Telemetry.isCollectionEnabled(context)) }
     var confirmDeletion by remember { mutableStateOf(false) }
@@ -238,6 +251,7 @@ fun ProfileScreen(user: Person, onProviderChange: (PaymentProvider) -> Unit, onS
             }
         }
         item { SettingsRow(Icons.Default.Shield, "Privacy policy", "How Owefolk protects your data") { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://chartmann1590.github.io/owefolk/privacy.html"))) } }
+        if (showAdPrivacyOptions) item { SettingsRow(Icons.Default.PrivacyTip, "Ad privacy choices", "Review advertising consent", onClick = onAdPrivacyOptions) }
         item { SettingsRow(Icons.AutoMirrored.Filled.Logout, "Sign out", "Keep your shared ledger in Firebase", onClick = onSignOut) }
         item { SettingsRow(Icons.Default.DeleteOutline, "Delete account", "Remove your account and personal data", destructive = true, onClick = { confirmDeletion = true }) }
     }
@@ -301,9 +315,14 @@ fun CreateGroupDialog(busy: Boolean, onDismiss: () -> Unit, onCreate: (String, S
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, onSave: (NewExpense) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var selectedGroup by remember { mutableStateOf(groups.firstOrNull()) }
     var title by remember { mutableStateOf("") }
     var amountText by remember { mutableStateOf("") }
+    var scanningReceipt by remember { mutableStateOf(false) }
+    var receiptStatus by remember { mutableStateOf<String?>(null) }
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
     var mode by remember { mutableStateOf(SplitMode.EQUAL) }
     var selectedIds by remember(selectedGroup) { mutableStateOf(selectedGroup?.members?.map(Person::id)?.toSet().orEmpty()) }
     val valueInputs = remember(selectedGroup, mode) { mutableStateMapOf<String, String>() }
@@ -317,12 +336,81 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
     }
     val valid = selectedGroup != null && title.isNotBlank() && amountMinor > 0 && selectedIds.isNotEmpty() && sharesValid
 
+    fun scanReceipt(uri: Uri) {
+        scanningReceipt = true
+        receiptStatus = null
+        scope.launch {
+            runCatching { ReceiptScanner.scan(context, uri) }
+                .onSuccess { suggestion ->
+                    suggestion.merchant?.let { title = it }
+                    suggestion.totalMinorUnits?.let {
+                        amountText = String.format(Locale.US, "%.2f", it / 100.0)
+                    }
+                    receiptStatus = when {
+                        suggestion.recognizedLineCount == 0 -> "No text found. Try again in brighter light."
+                        suggestion.merchant == null && suggestion.totalMinorUnits == null -> "Text found, but no merchant or total. Enter them below."
+                        suggestion.totalMinorUnits == null -> "Merchant found. Check the receipt and enter the total."
+                        else -> "Receipt scanned. Review the details before adding it."
+                    }
+                    Telemetry.event("receipt_scan_completed", mapOf("recognized_lines" to suggestion.recognizedLineCount))
+                }
+                .onFailure {
+                    receiptStatus = "That receipt could not be read. Try a clearer photo."
+                    Telemetry.record(it, "receipt_scan")
+                }
+            scanningReceipt = false
+        }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val uri = cameraUri
+        cameraUri = null
+        if (saved && uri != null) scanReceipt(uri)
+    }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let(::scanReceipt)
+    }
+
     ModalBottomSheet(onDismissRequest = onDismiss, dragHandle = { BottomSheetDefaults.DragHandle() }) {
         LazyColumn(
             Modifier.fillMaxWidth().imePadding(), contentPadding = PaddingValues(22.dp, 4.dp, 22.dp, 36.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { Text("Add an expense", style = MaterialTheme.typography.headlineMedium) }
+            item {
+                ElevatedCard(shape = RoundedCornerShape(22.dp), colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = .14f)), contentAlignment = Alignment.Center) {
+                                if (scanningReceipt) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                                else Icon(Icons.Default.DocumentScanner, null, tint = MaterialTheme.colorScheme.primary)
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("Scan a receipt", style = MaterialTheme.typography.titleMedium)
+                                Text("On-device OCR fills the merchant and total", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Button(
+                                onClick = {
+                                    val uri = ReceiptScanner.newCameraUri(context)
+                                    cameraUri = uri
+                                    cameraLauncher.launch(uri)
+                                },
+                                enabled = !scanningReceipt,
+                                modifier = Modifier.weight(1f),
+                            ) { Icon(Icons.Default.PhotoCamera, null); Spacer(Modifier.width(6.dp)); Text("Camera") }
+                            OutlinedButton(
+                                onClick = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                                enabled = !scanningReceipt,
+                                modifier = Modifier.weight(1f),
+                            ) { Icon(Icons.Default.PhotoLibrary, null); Spacer(Modifier.width(6.dp)); Text("Photos") }
+                        }
+                        receiptStatus?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    }
+                }
+            }
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(groups, key = Group::id) { group -> FilterChip(selected = selectedGroup?.id == group.id, onClick = { selectedGroup = group }, label = { Text("${group.emoji} ${group.name}") }) }

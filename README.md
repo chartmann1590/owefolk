@@ -11,6 +11,8 @@ These are screenshots of the production Firebase build running on a connected Pi
 <p align="center">
   <img src="media/screenshots/home-ledger.png" width="240" alt="Owefolk home balance">
   <img src="media/screenshots/invite-accepted.png" width="240" alt="A real GitHub Pages invite accepted by a second Firebase user">
+  <img src="media/screenshots/receipt-scan.png" width="240" alt="On-device receipt OCR filling a real expense form">
+  <img src="media/screenshots/admob-banner.png" width="240" alt="Google test banner displayed by the AdMob integration">
   <img src="media/screenshots/add-expense.png" width="240" alt="Add an expense">
   <img src="media/screenshots/payment-options-full.png" width="240" alt="External payment options">
 </p>
@@ -20,6 +22,8 @@ These are screenshots of the production Firebase build running on a connected Pi
 - Kotlin, Jetpack Compose, Material 3, edge-to-edge layouts, dynamic light/dark appearance, and Android API 36.
 - Firebase Authentication with Google and email/password entry points.
 - Cloud Firestore groups, memberships, expenses, equal/exact/percentage splits, activity, invitations, reminders, and recipient-confirmed settlements.
+- On-device ML Kit receipt OCR from the camera or Android photo picker, with merchant/total suggestions that must be reviewed before saving.
+- Consent-gated anchored adaptive AdMob banners and frequency-capped interstitials shown only after a completed expense.
 - Deterministic integer-minor-unit math and debt simplification without rewriting financial history.
 - Honest Venmo, Cash App, PayPal, Zelle, cash, or custom-link handoff. Payment details are copied and the real provider is opened; no private P2P API is impersonated.
 - Firebase Analytics, Crashlytics, Performance Monitoring, Remote Config, Cloud Messaging, and Play Integrity App Check integration with privacy-safe event boundaries.
@@ -52,7 +56,7 @@ Requirements: JDK 17, Android SDK 36, Node.js 22, Firebase CLI, and Wrangler.
 Set-Location worker; npm ci; npm run check; Set-Location ..
 ```
 
-`app/google-services.json` is required and intentionally ignored. Release signing is supplied only through `OWEFOLK_KEYSTORE_PATH`, `OWEFOLK_KEYSTORE_PASSWORD`, `OWEFOLK_KEY_ALIAS`, and `OWEFOLK_KEY_PASSWORD`; no key material is committed.
+`app/google-services.json` and `local.properties` are intentionally ignored. Release signing is supplied only through `OWEFOLK_KEYSTORE_PATH`, `OWEFOLK_KEYSTORE_PASSWORD`, `OWEFOLK_KEY_ALIAS`, and `OWEFOLK_KEY_PASSWORD`. AdMob values are supplied through `ADMOB_APP_ID`, `ADMOB_BANNER_ID`, and `ADMOB_INTERSTITIAL_ID` in CI or ignored local properties.
 
 ## Production services
 
@@ -60,11 +64,11 @@ Set-Location worker; npm ci; npm run check; Set-Location ..
 - Android package: `com.charles.owefolk`
 - Cloudflare Worker: `https://owefolk-api.charles-h-hartmann1.workers.dev`
 - Cloudflare D1: `owefolk-prod`
-- GitHub Actions secrets hold the Firebase Android config, signing key, signing credentials, Firebase deploy identity, and Worker encryption key.
+- GitHub Actions secrets hold the Firebase Android config, signing key, signing credentials, Firebase deploy identity, AdMob identifiers, and Worker encryption key.
 - The public website is deployed only from `site/` to GitHub Pages.
 
 ## Security and privacy
 
-Telemetry rejects sensitive parameter names and must never contain names, emails, notes, amounts, handles, invite tokens, group IDs, or user IDs. Signing files, Firebase configuration, service-account JSON, local Worker variables, and generated build outputs are ignored. Shared ledger rows survive account deletion only in anonymized form so remaining members retain a coherent history.
+Telemetry rejects sensitive parameter names and must never contain names, emails, notes, amounts, handles, invite tokens, group IDs, user IDs, or OCR text. Receipt images and recognized text stay on-device and are discarded after suggestions are produced. Signing files, Firebase configuration, service-account JSON, local properties, Worker variables, and generated build outputs are ignored. AdMob identifiers are public identifiers by design because Android packages must contain them; cryptographic Worker secrets are never embedded in the app.
 
 Before a Play Store production launch, enable Firebase App Check enforcement after monitoring Play Integrity metrics, complete Play Data Safety and financial-feature disclosures, and run the Play pre-launch/accessibility reports.

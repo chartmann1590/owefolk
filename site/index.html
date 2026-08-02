@@ -22,7 +22,8 @@
       <div class="hero-shot"><img src="media/screenshots/home-ledger.png" alt="Owefolk production dashboard on a Pixel 8 Pro"></div>
     </section>
 
-    <section class="features" id="features">
+    <section class="features" id="features" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+      <article class="feature"><span>&#128247;</span><h2>Scan the receipt</h2><p>Private on-device OCR suggests the merchant and total for you to review.</p></article>
       <article class="feature"><span>🧾</span><h2>Split it your way</h2><p>Equal, exact, or percentage splits with deterministic, penny-perfect totals.</p></article>
       <article class="feature"><span>🤝</span><h2>Settle honestly</h2><p>Open Venmo, Cash App, PayPal, Zelle, or a custom method, then confirm together.</p></article>
       <article class="feature"><span>🔐</span><h2>Private by design</h2><p>Member-scoped Firestore rules and telemetry that excludes names, notes, and amounts.</p></article>
@@ -31,6 +32,8 @@
     <section class="demo" id="demo">
       <div class="section-copy"><div class="eyebrow">Tested on real hardware</div><h2>Production data.<br>No mock ledger.</h2><p>The screenshots and video come from the signed app running on a connected Pixel 8 Pro against the live Firebase project.</p></div>
       <div class="shot-grid">
+        <figure><img src="media/screenshots/receipt-scan.png" alt="A receipt scanned on-device on a Pixel 8 Pro"><figcaption>On-device receipt OCR</figcaption></figure>
+        <figure><img src="media/screenshots/admob-banner.png" alt="Google test banner in the Android app"><figcaption>Consent-gated AdMob</figcaption></figure>
         <figure><img src="media/screenshots/add-expense.png" alt="Adding a real expense"><figcaption>Fast expense entry</figcaption></figure>
         <figure><img src="media/screenshots/invite-accepted.png" alt="A real invite accepted through GitHub Pages"><figcaption>Live one-time invites</figcaption></figure>
         <figure><img src="media/screenshots/payment-options-full.png" alt="Payment provider choices"><figcaption>Provider handoff</figcaption></figure>

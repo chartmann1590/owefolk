@@ -11,6 +11,9 @@
         android:roundIcon="@drawable/ic_owefolk"
         android:supportsRtl="true"
         android:theme="@style/Theme.Owefolk">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -25,6 +28,16 @@
                 <data android:scheme="owefolk" android:host="invite" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <service
             android:name=".notifications.OwefolkMessagingService"

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -15,6 +16,20 @@ val releaseKeystorePath = providers.environmentVariable("OWEFOLK_KEYSTORE_PATH")
 val releaseKeystorePassword = providers.environmentVariable("OWEFOLK_KEYSTORE_PASSWORD")
 val releaseKeyAlias = providers.environmentVariable("OWEFOLK_KEY_ALIAS").orElse("key0")
 val releaseKeyPassword = providers.environmentVariable("OWEFOLK_KEY_PASSWORD")
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use(::load)
+}
+fun protectedValue(name: String): String? = providers.environmentVariable(name).orNull ?: localProperties.getProperty(name)
+val admobAppId = protectedValue("ADMOB_APP_ID")
+val admobBannerId = protectedValue("ADMOB_BANNER_ID")
+val admobInterstitialId = protectedValue("ADMOB_INTERSTITIAL_ID")
+val admobTestDeviceId = protectedValue("ADMOB_TEST_DEVICE_ID").orEmpty()
+val buildingRelease = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
+if (buildingRelease) {
+    require(!admobAppId.isNullOrBlank() && !admobBannerId.isNullOrBlank() && !admobInterstitialId.isNullOrBlank()) {
+        "Release builds require ADMOB_APP_ID, ADMOB_BANNER_ID, and ADMOB_INTERSTITIAL_ID"
+    }
+}
 
 android {
     namespace = "com.charles.owefolk"
@@ -24,8 +39,8 @@ android {
         applicationId = "com.charles.owefolk"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -44,12 +59,21 @@ android {
     buildTypes {
         debug {
             versionNameSuffix = "-debug"
+            if (releaseKeystorePath.isPresent) signingConfig = signingConfigs.getByName("release")
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+            buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-3940256099942544/9214589741\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
+            buildConfigField("String", "ADMOB_TEST_DEVICE_ID", "\"$admobTestDeviceId\"")
         }
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            manifestPlaceholders["admobAppId"] = admobAppId.orEmpty()
+            buildConfigField("String", "ADMOB_BANNER_ID", "\"${admobBannerId.orEmpty()}\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${admobInterstitialId.orEmpty()}\"")
+            buildConfigField("String", "ADMOB_TEST_DEVICE_ID", "\"$admobTestDeviceId\"")
         }
     }
 
@@ -89,6 +113,9 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.mlkit.text.recognition)
+    implementation(libs.google.mobile.ads)
+    implementation(libs.google.ump)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)

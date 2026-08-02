@@ -18,6 +18,9 @@ import com.charles.owefolk.domain.Group
 import com.google.firebase.auth.FirebaseAuth
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
+import com.charles.owefolk.ads.AdMobBanner
+import com.charles.owefolk.ads.AdsManager
 
 private enum class RootDestination(val route: String, val label: String, val icon: ImageVector) {
     HOME("home", "Home", Icons.Default.Home),
@@ -67,23 +70,27 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val privacyOptionsRequired by AdsManager.privacyOptionsRequired.collectAsState()
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            NavigationBar(tonalElevation = 0.dp) {
-                RootDestination.entries.forEach { destination ->
-                    NavigationBarItem(
-                        selected = currentRoute == destination.route,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(destination.icon, null) },
-                        label = { Text(destination.label) },
-                    )
+            Column {
+                AdMobBanner()
+                NavigationBar(tonalElevation = 0.dp) {
+                    RootDestination.entries.forEach { destination ->
+                        NavigationBarItem(
+                            selected = currentRoute == destination.route,
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = { Icon(destination.icon, null) },
+                            label = { Text(destination.label) },
+                        )
+                    }
                 }
             }
         },
@@ -112,14 +119,19 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
             composable(RootDestination.PROFILE.route) {
                 ProfileScreen(dashboard.user, onProviderChange = viewModel::updatePreferredProvider,
                     onSignOut = { FirebaseAuth.getInstance().signOut() },
-                    onDeleteAccount = viewModel::deleteAccount)
+                    onDeleteAccount = viewModel::deleteAccount,
+                    showAdPrivacyOptions = privacyOptionsRequired,
+                    onAdPrivacyOptions = { (context as? Activity)?.let(AdsManager::showPrivacyOptions) })
             }
         }
     }
 
     if (showAddExpense) {
         AddExpenseSheet(dashboard.groups, state.busy, onDismiss = { showAddExpense = false }) {
-            viewModel.addExpense(it) { showAddExpense = false }
+            viewModel.addExpense(it) {
+                showAddExpense = false
+                (context as? Activity)?.let(AdsManager::onExpenseSaved)
+            }
         }
     }
     if (showCreateGroup) {
