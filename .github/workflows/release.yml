@@ -36,6 +36,9 @@ jobs:
           ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
           ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
           ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
+          GH_REPO_OWNER: ${{ secrets.GH_REPO_OWNER }}
+          GH_REPO_NAME: ${{ secrets.GH_REPO_NAME }}
+          FEEDBACK_PROXY_URL: https://owefolk-api.charles-h-hartmann1.workers.dev
         run: ./gradlew testDebugUnitTest assembleRelease bundleRelease
       - uses: actions/upload-artifact@v4
         with:

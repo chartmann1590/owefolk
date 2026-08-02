@@ -31,6 +31,33 @@ if (buildingRelease) {
     }
 }
 
+// --- In-app feedback / GitHub-backed bug reporter configuration ---
+// These values are NON-SECRET and safe to embed in the APK because they only
+// describe WHERE the app should send feedback. The GitHub API token is NOT
+// stored here - it lives only as a Cloudflare Worker secret and is injected
+// server-side by the proxy at FEEDBACK_PROXY_URL. See worker/src/index.ts.
+val githubRepoOwner = providers
+    .gradleProperty("github.repo.owner")
+    .orElse(providers.environmentVariable("GH_REPO_OWNER"))
+    .orElse(localProperties.getProperty("github.repo.owner") ?: "")
+    .get()
+val githubRepoName = providers
+    .gradleProperty("github.repo.name")
+    .orElse(providers.environmentVariable("GH_REPO_NAME"))
+    .orElse(localProperties.getProperty("github.repo.name") ?: "")
+    .get()
+val feedbackProxyUrl = providers
+    .gradleProperty("feedback.proxy.url")
+    .orElse(providers.environmentVariable("FEEDBACK_PROXY_URL"))
+    .orElse(localProperties.getProperty("feedback.proxy.url") ?: "")
+    .get()
+val feedbackAssetsDir = "feedback-assets"
+val feedbackAppName = providers
+    .gradleProperty("app.name")
+    .orElse(providers.environmentVariable("APP_NAME"))
+    .orElse("Owefolk")
+    .get()
+
 android {
     namespace = "com.charles.owefolk"
     compileSdk = 36
@@ -39,8 +66,8 @@ android {
         applicationId = "com.charles.owefolk"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.5.0"
+        versionCode = 6
+        versionName = "0.6.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -64,6 +91,13 @@ android {
             buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-3940256099942544/9214589741\"")
             buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
             buildConfigField("String", "ADMOB_TEST_DEVICE_ID", "\"$admobTestDeviceId\"")
+            buildConfigField("String", "GITHUB_REPO_OWNER", "\"$githubRepoOwner\"")
+            buildConfigField("String", "GITHUB_REPO_NAME", "\"$githubRepoName\"")
+            // Intentionally always empty. The PAT is injected only by the authenticated Worker.
+            buildConfigField("String", "GITHUB_API_TOKEN", "\"\"")
+            buildConfigField("String", "FEEDBACK_ASSETS_DIR", "\"$feedbackAssetsDir\"")
+            buildConfigField("String", "FEEDBACK_PROXY_URL", "\"$feedbackProxyUrl\"")
+            buildConfigField("String", "FEEDBACK_APP_NAME", "\"$feedbackAppName\"")
         }
         release {
             signingConfig = signingConfigs.getByName("release")
@@ -74,6 +108,13 @@ android {
             buildConfigField("String", "ADMOB_BANNER_ID", "\"${admobBannerId.orEmpty()}\"")
             buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${admobInterstitialId.orEmpty()}\"")
             buildConfigField("String", "ADMOB_TEST_DEVICE_ID", "\"$admobTestDeviceId\"")
+            buildConfigField("String", "GITHUB_REPO_OWNER", "\"$githubRepoOwner\"")
+            buildConfigField("String", "GITHUB_REPO_NAME", "\"$githubRepoName\"")
+            // Intentionally always empty. The PAT is injected only by the authenticated Worker.
+            buildConfigField("String", "GITHUB_API_TOKEN", "\"\"")
+            buildConfigField("String", "FEEDBACK_ASSETS_DIR", "\"$feedbackAssetsDir\"")
+            buildConfigField("String", "FEEDBACK_PROXY_URL", "\"$feedbackProxyUrl\"")
+            buildConfigField("String", "FEEDBACK_APP_NAME", "\"$feedbackAppName\"")
         }
     }
 
@@ -113,6 +154,9 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.mlkit.text.recognition)
     implementation(libs.google.mobile.ads)
     implementation(libs.google.ump)

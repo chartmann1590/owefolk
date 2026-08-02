@@ -26,6 +26,10 @@ jobs:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
         run: printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/google-services.json
       - name: Android tests and debug build
+        env:
+          GH_REPO_OWNER: ${{ secrets.GH_REPO_OWNER }}
+          GH_REPO_NAME: ${{ secrets.GH_REPO_NAME }}
+          FEEDBACK_PROXY_URL: https://owefolk-api.charles-h-hartmann1.workers.dev
         run: ./gradlew testDebugUnitTest assembleDebug
       - name: Worker type check
         working-directory: worker

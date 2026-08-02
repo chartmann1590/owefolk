@@ -228,6 +228,7 @@ fun ProfileScreen(
     onAdPrivacyOptions: () -> Unit,
 ) {
     val context = LocalContext.current
+    val feedbackRepo = remember { com.charles.owefolk.data.feedback.BugReportRepo(context) }
     var analyticsEnabled by remember { mutableStateOf(com.charles.owefolk.observability.Telemetry.isCollectionEnabled(context)) }
     var confirmDeletion by remember { mutableStateOf(false) }
     var chooseProvider by remember { mutableStateOf(false) }
@@ -267,6 +268,7 @@ fun ProfileScreen(
         }
         item { SettingsRow(Icons.Default.Shield, "Privacy policy", "How Owefolk protects your data") { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://chartmann1590.github.io/owefolk/privacy.html"))) } }
         if (showAdPrivacyOptions) item { SettingsRow(Icons.Default.PrivacyTip, "Ad privacy choices", "Review advertising consent", onClick = onAdPrivacyOptions) }
+        item { com.charles.owefolk.ui.feedback.SupportFeedbackSection(feedbackRepo) }
         item { SettingsRow(Icons.AutoMirrored.Filled.Logout, "Sign out", "Keep your shared ledger in Firebase", onClick = onSignOut) }
         item { SettingsRow(Icons.Default.DeleteOutline, "Delete account", "Remove your account and personal data", destructive = true, onClick = { confirmDeletion = true }) }
     }
