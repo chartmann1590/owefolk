@@ -4,51 +4,75 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#5b4bd8">
-  <title>Owefolk — shared tabs, clear friendships</title>
-  <meta name="description" content="Track shared expenses with friends and settle up using the payment apps you already use.">
+  <title>Owefolk - shared tabs, clear friendships</title>
+  <meta name="description" content="Know what you owe, scan receipts, split expenses fairly, and pay friends back with the payment apps they prefer.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header><nav><a class="brand" href="./"><span class="mark">O</span> Owefolk</a><div class="navlinks"><a href="#features">Features</a><a href="privacy.html">Privacy</a><a href="delete-account.html">Delete account</a><a href="https://github.com/chartmann1590/owefolk">GitHub</a></div></nav></header>
+  <header>
+    <nav>
+      <a class="brand" href="./"><span class="mark">O</span> Owefolk</a>
+      <div class="navlinks"><a href="#how-it-works">How it works</a><a href="#real-app">Real app</a><a href="privacy.html">Privacy</a><a href="https://github.com/chartmann1590/owefolk/releases/latest">Download</a></div>
+    </nav>
+  </header>
+
   <main>
     <section class="hero">
       <div>
         <div class="eyebrow">Made for friends, not spreadsheets</div>
-        <h1>Shared tabs.<br><span class="gradient">Clear friendships.</span></h1>
-        <p class="lead">Owefolk keeps trips, apartments, dinners, and group plans fair—then hands repayment to the payment app each person prefers.</p>
-        <div class="actions"><a class="button" href="https://github.com/chartmann1590/owefolk/releases">Get the Android release</a><a class="text-link" href="#demo">See the real Pixel build ↓</a></div>
-        <p class="trust">Firebase-backed ledger · encrypted deletion requests · no custody of funds</p>
+        <h1>Know what you owe.<br><span class="gradient">Keep friendship easy.</span></h1>
+        <p class="lead">Owefolk keeps dinners, trips, rent, and group plans fair. Everyone sees their own balance, who it belongs to, and how that friend prefers to be paid back.</p>
+        <div class="actions"><a class="button" href="https://github.com/chartmann1590/owefolk/releases/latest">Get Owefolk for Android</a><a class="text-link" href="#demo">Watch the tour &darr;</a></div>
+        <p class="trust">Clear shared balances &middot; private receipt scanning &middot; no custody of funds</p>
       </div>
-      <div class="hero-shot"><img src="media/screenshots/home-ledger.png" alt="Owefolk production dashboard on a Pixel 8 Pro"></div>
+      <div class="hero-shot"><img src="media/screenshots/what-you-owe.png" alt="Owefolk showing a member what they owe across two groups"></div>
     </section>
 
-    <section class="features" id="features" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
-      <article class="feature"><span>&#128247;</span><h2>Scan the receipt</h2><p>Private on-device OCR suggests the merchant and total for you to review.</p></article>
-      <article class="feature"><span>🧾</span><h2>Split it your way</h2><p>Equal, exact, or percentage splits with deterministic, penny-perfect totals.</p></article>
-      <article class="feature"><span>🤝</span><h2>Settle honestly</h2><p>Open Venmo, Cash App, PayPal, Zelle, or a custom method, then confirm together.</p></article>
-      <article class="feature"><span>🔐</span><h2>Private by design</h2><p>Member-scoped Firestore rules and telemetry that excludes names, notes, and amounts.</p></article>
+    <section class="features" id="how-it-works" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+      <article class="feature"><span>&#128247;</span><h2>Scan the receipt</h2><p>Take a photo and let private on-device recognition suggest the merchant and total for you to review.</p></article>
+      <article class="feature"><span>&#129534;</span><h2>Split it fairly</h2><p>Choose equal, exact, or percentage shares. Owefolk keeps every cent accounted for.</p></article>
+      <article class="feature"><span>&#128101;</span><h2>See who owes whom</h2><p>Use direct balances or simplify the group into fewer repayments whenever everyone prefers.</p></article>
+      <article class="feature"><span>&#129309;</span><h2>Pay their way</h2><p>See your friend's preferred provider and handle, then open the right payment destination.</p></article>
     </section>
 
-    <section class="demo" id="demo">
-      <div class="section-copy"><div class="eyebrow">Tested on real hardware</div><h2>Production data.<br>No mock ledger.</h2><p>The screenshots and video come from the signed app running on a connected Pixel 8 Pro against the live Firebase project.</p></div>
+    <section class="demo" id="real-app">
+      <div class="section-copy">
+        <div class="eyebrow">The view from both sides</div>
+        <h2>No mystery balances.<br>No awkward follow-up.</h2>
+        <p>The person paying sees exactly who they owe and how to repay them. The person who covered the bill sees who owes them and which payment details are being shared.</p>
+      </div>
       <div class="shot-grid">
-        <figure><img src="media/screenshots/receipt-scan.png" alt="A receipt scanned on-device on a Pixel 8 Pro"><figcaption>On-device receipt OCR</figcaption></figure>
-        <figure><img src="media/screenshots/admob-banner.png" alt="Google test banner in the Android app"><figcaption>Consent-gated AdMob</figcaption></figure>
-        <figure><img src="media/screenshots/add-expense.png" alt="Adding a real expense"><figcaption>Fast expense entry</figcaption></figure>
-        <figure><img src="media/screenshots/invite-accepted.png" alt="A real invite accepted through GitHub Pages"><figcaption>Live one-time invites</figcaption></figure>
-        <figure><img src="media/screenshots/payment-options-full.png" alt="Payment provider choices"><figcaption>Provider handoff</figcaption></figure>
-        <figure><img src="media/screenshots/profile.png" alt="Privacy and payment preferences"><figcaption>Preferences and privacy</figcaption></figure>
+        <figure><img src="media/screenshots/what-you-owe.png" alt="A signed-in member's current debts"><figcaption>See your full picture</figcaption></figure>
+        <figure><img src="media/screenshots/open-venmo.png" alt="A debtor sees the recipient's Venmo handle and Open Venmo action"><figcaption>Open their preferred method</figcaption></figure>
+        <figure><img src="media/screenshots/payment-sent-step.png" alt="The payer confirms only after sending the payment"><figcaption>Confirm only after paying</figcaption></figure>
+        <figure><img src="media/screenshots/who-owes-you.png" alt="The recipient sees who owes them"><figcaption>Know who owes you</figcaption></figure>
+        <figure><img src="media/screenshots/receipt-scan.png" alt="Receipt text recognized privately on the phone"><figcaption>Scan receipts on-device</figcaption></figure>
+        <figure><img src="media/screenshots/add-expense.png" alt="Reviewing and splitting an expense"><figcaption>Review every split</figcaption></figure>
       </div>
     </section>
 
-    <section class="video-section">
-      <div class="eyebrow">45-second tour</div><h2>Watch Owefolk in action</h2>
-      <video controls preload="metadata" poster="media/screenshots/home-ledger.png"><source src="media/owefolk-promo.mp4" type="video/mp4">Your browser does not support HTML video.</video>
-      <p>1080p, narrated, with burned-in captions.</p>
+    <section class="demo">
+      <div class="section-copy">
+        <div class="eyebrow">A payment trail friends can trust</div>
+        <h2>Opening an app is not the same as paying.</h2>
+        <p>Owefolk hands you off to Venmo, Cash App, PayPal, Zelle, or a custom link. Your balance stays unchanged until you say the payment was sent and your friend confirms receiving it.</p>
+      </div>
     </section>
 
-    <section class="cta"><h2>Fair math. Less awkwardness.</h2><p>Open-source Android, Firebase, and Cloudflare infrastructure you can inspect.</p><a class="button" href="https://github.com/chartmann1590/owefolk">View the project on GitHub</a></section>
+    <section class="video-section" id="demo">
+      <div class="eyebrow">A quick guided tour</div>
+      <h2>See Owefolk in action</h2>
+      <video controls preload="metadata" poster="media/screenshots/what-you-owe.png"><source src="media/owefolk-promo.mp4" type="video/mp4">Your browser does not support HTML video.</video>
+      <p>Full HD, narrated, and captioned.</p>
+    </section>
+
+    <section class="cta">
+      <h2>Fair math. Less awkwardness.</h2>
+      <p>Start a group, add the next shared expense, and let everyone see where they stand.</p>
+      <a class="button" href="https://github.com/chartmann1590/owefolk/releases/latest">Download the Android release</a>
+    </section>
   </main>
-  <footer><span>© 2026 Hartmann Studios</span><span>Owefolk tracks debts but does not hold, transmit, or verify funds.</span></footer>
+
+  <footer><span>&copy; 2026 Hartmann Studios</span><span><a href="privacy.html">Privacy</a> &middot; <a href="delete-account.html">Delete account</a> &middot; <a href="https://github.com/chartmann1590/owefolk">GitHub</a></span><span>Owefolk tracks debts but does not hold, send, or verify funds.</span></footer>
 </body>
 </html>

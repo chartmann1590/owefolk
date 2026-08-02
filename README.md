@@ -1,76 +1,56 @@
 # Owefolk
 
-Owefolk is a native Android shared-expense app for friends. It records a clear, auditable ledger in Firebase, calculates who owes whom using integer money arithmetic, and hands repayments to the payment service people already use. Owefolk never holds funds and never claims an external payment succeeded—the recipient confirms it in the ledger.
+### Shared tabs. Clear friendships.
 
-[GitHub Pages website](https://chartmann1590.github.io/owefolk/) · [Privacy](https://chartmann1590.github.io/owefolk/privacy.html) · [Delete account](https://chartmann1590.github.io/owefolk/delete-account.html) · [Releases](https://github.com/chartmann1590/owefolk/releases)
+Owefolk helps friends, roommates, couples, and travel groups keep shared expenses fair without turning every dinner into a spreadsheet. Add what was paid, choose how to split it, and everyone sees their own up-to-date balance when they sign in.
 
-## Real Pixel 8 Pro test
+[Visit the Owefolk website](https://chartmann1590.github.io/owefolk/) | [Download the Android app](https://github.com/chartmann1590/owefolk/releases/latest) | [Read the privacy promise](https://chartmann1590.github.io/owefolk/privacy.html)
 
-These are screenshots of the production Firebase build running on a connected Pixel 8 Pro. The expenses, members, balance, activity, and settlement shown below are real records in the production Firestore project—not hardcoded demo data.
+## Know exactly where you stand
+
+No guessing and no awkward group-chat math. Owefolk shows what you owe, what you are owed, and the group behind every balance.
 
 <p align="center">
-  <img src="media/screenshots/home-ledger.png" width="240" alt="Owefolk home balance">
-  <img src="media/screenshots/invite-accepted.png" width="240" alt="A real GitHub Pages invite accepted by a second Firebase user">
-  <img src="media/screenshots/receipt-scan.png" width="240" alt="On-device receipt OCR filling a real expense form">
-  <img src="media/screenshots/admob-banner.png" width="240" alt="Google test banner displayed by the AdMob integration">
-  <img src="media/screenshots/add-expense.png" width="240" alt="Add an expense">
-  <img src="media/screenshots/payment-options-full.png" width="240" alt="External payment options">
+  <img src="media/screenshots/what-you-owe.png" width="300" alt="Owefolk showing a signed-in member exactly what they owe across their groups">
 </p>
 
-## What ships
+## Paying someone back feels natural
 
-- Kotlin, Jetpack Compose, Material 3, edge-to-edge layouts, dynamic light/dark appearance, and Android API 36.
-- Firebase Authentication with Google and email/password entry points.
-- Cloud Firestore groups, memberships, expenses, equal/exact/percentage splits, activity, invitations, reminders, and recipient-confirmed settlements.
-- On-device ML Kit receipt OCR from the camera or Android photo picker, with merchant/total suggestions that must be reviewed before saving.
-- Consent-gated anchored adaptive AdMob banners and frequency-capped interstitials shown only after a completed expense.
-- Deterministic integer-minor-unit math and debt simplification without rewriting financial history.
-- Per-person repayment details, with a group-wide switch between minimized transfers and direct payer relationships.
-- Member payment preferences and handles synchronized through Firestore so the person repaying always sees the recipient's chosen method.
-- Honest Venmo, Cash App, PayPal, Zelle, cash, or custom-link handoff. Payment details are copied and the real provider is opened; no private P2P API is impersonated.
-- Firebase Analytics, Crashlytics, Performance Monitoring, Remote Config, Cloud Messaging, and Play Integrity App Check integration with privacy-safe event boundaries.
-- Member-scoped Firestore security rules, single-use expiring invites, anonymizing in-app deletion, and a public deletion form backed by a Cloudflare Worker.
-- AES-GCM encrypted deletion requests, HMAC duplicate detection, Cloudflare D1 persistence, Worker observability, and no plaintext account email storage.
-- Signed APK/App Bundle automation, Android/Worker checks, dependency audits, free Firebase Auth/Firestore deployment, and GitHub Pages deployment through GitHub Actions.
+Open a group to see the person you owe, the exact amount, and the payment method they prefer. Their saved handle is shared with you, so Owefolk can open the right destination in Venmo, Cash App, PayPal, Zelle, or their custom payment link.
 
-## Architecture
+<p align="center">
+  <img src="media/screenshots/open-venmo.png" width="300" alt="A debtor sees who they owe, the amount, the recipient's Venmo handle, and an Open Venmo button">
+  <img src="media/screenshots/payment-sent-step.png" width="300" alt="After opening Venmo, Owefolk asks the payer to confirm only after they have really sent the payment">
+</p>
 
-```text
-Android app
-  ├─ Firebase Authentication
-  ├─ Cloud Firestore + security rules
-  ├─ Analytics / Crashlytics / Performance / Remote Config / FCM
-  └─ external payment-app or browser handoff
+Owefolk never pretends that opening another app means money moved. After paying, the sender marks the payment sent; the recipient confirms it before the shared balance changes.
 
-Public web
-  ├─ GitHub Pages (the only website host)
-  └─ Cloudflare Worker → encrypted payloads in D1
-```
+## From receipt to repaid
 
-There are no Firebase Cloud Functions and no Firebase Hosting deployment. The app uses rules-constrained Firebase Auth/Firestore client operations; the secret-bearing deletion endpoint runs on the free Cloudflare Workers/D1 tier.
+1. **Add it quickly.** Type an expense or scan a receipt. Private on-device text recognition suggests the merchant and total for you to review.
+2. **Split it fairly.** Divide the cost equally, enter exact shares, or use percentages.
+3. **See the real picture.** Keep debts tied to the friend who originally paid, or let the group simplify repayments into fewer transfers.
+4. **Settle your way.** Each person saves a preferred payment method and handle. The friend paying them back sees those details automatically.
 
-## Build
+<p align="center">
+  <img src="media/screenshots/receipt-scan.png" width="240" alt="Scanning a receipt privately on the phone">
+  <img src="media/screenshots/add-expense.png" width="240" alt="Reviewing and splitting a shared expense">
+  <img src="media/screenshots/who-owes-you.png" width="240" alt="A recipient sees exactly who owes them and which payment details will be shared">
+</p>
 
-Requirements: JDK 17, Android SDK 36, Node.js 22, Firebase CLI, and Wrangler.
+## Made for real groups
 
-```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug
-Set-Location worker; npm ci; npm run check; Set-Location ..
-```
+- Live shared groups, invitations, reminders, and activity history
+- Clear per-person repayment details for both the person paying and the person receiving
+- A group-wide choice between simplified repayments and direct payer relationships
+- Receipt scanning that keeps the image and recognized text on your device
+- Light and dark themes designed to feel at home on Android
+- Account deletion and privacy controls inside the app and on the web
 
-`app/google-services.json` and `local.properties` are intentionally ignored. Release signing is supplied only through `OWEFOLK_KEYSTORE_PATH`, `OWEFOLK_KEYSTORE_PASSWORD`, `OWEFOLK_KEY_ALIAS`, and `OWEFOLK_KEY_PASSWORD`. AdMob values are supplied through `ADMOB_APP_ID`, `ADMOB_BANNER_ID`, and `ADMOB_INTERSTITIAL_ID` in CI or ignored local properties.
+The screenshots above come from the production app running on a connected Pixel 8 Pro with two real Firebase accounts and shared records. They are not hardcoded demo screens. Payment testing uses a clearly labeled QA handle, so no false or unauthorized payment is recorded.
 
-## Production services
+## Get Owefolk
 
-- Firebase project: `owefolk-20260801`
-- Android package: `com.charles.owefolk`
-- Cloudflare Worker: `https://owefolk-api.charles-h-hartmann1.workers.dev`
-- Cloudflare D1: `owefolk-prod`
-- GitHub Actions secrets hold the Firebase Android config, signing key, signing credentials, Firebase deploy identity, AdMob identifiers, and Worker encryption key.
-- The public website is deployed only from `site/` to GitHub Pages.
+Download the latest signed Android release from [GitHub Releases](https://github.com/chartmann1590/owefolk/releases/latest), or explore the experience on the [Owefolk GitHub Pages website](https://chartmann1590.github.io/owefolk/).
 
-## Security and privacy
-
-Telemetry rejects sensitive parameter names and must never contain names, emails, notes, amounts, handles, invite tokens, group IDs, user IDs, or OCR text. Receipt images and recognized text stay on-device and are discarded after suggestions are produced. Signing files, Firebase configuration, service-account JSON, local properties, Worker variables, and generated build outputs are ignored. AdMob identifiers are public identifiers by design because Android packages must contain them; cryptographic Worker secrets are never embedded in the app.
-
-Before a Play Store production launch, enable Firebase App Check enforcement after monitoring Play Integrity metrics, complete Play Data Safety and financial-feature disclosures, and run the Play pre-launch/accessibility reports.
+Owefolk tracks shared debts but does not hold, send, receive, or verify money. Payments happen through the services you and your friends choose.
