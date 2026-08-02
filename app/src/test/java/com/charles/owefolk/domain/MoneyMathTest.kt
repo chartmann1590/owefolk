@@ -26,4 +26,30 @@ class MoneyMathTest {
         val transfers = DebtSimplifier.simplify(mapOf("alex" to -5_000, "bea" to -2_500, "charles" to 7_500))
         assertEquals(listOf(Transfer("alex", "charles", 5_000), Transfer("bea", "charles", 2_500)), transfers)
     }
+
+    @Test fun directLedgerPreservesWhoOriginallyOwesWhom() {
+        val transfers = LedgerMath.directTransfers(
+            listOf(
+                LedgerCharge("alex", mapOf("alex" to 1_000, "bea" to 1_000, "charles" to 1_000)),
+                LedgerCharge("bea", mapOf("alex" to 500, "bea" to 500)),
+            ),
+            emptyList(),
+        )
+        assertEquals(listOf(Transfer("bea", "alex", 500), Transfer("charles", "alex", 1_000)), transfers)
+    }
+
+    @Test fun confirmedPaymentReducesOnlyTheMatchingDirectDebt() {
+        val transfers = LedgerMath.directTransfers(
+            listOf(LedgerCharge("alex", mapOf("bea" to 1_000, "charles" to 800))),
+            listOf(LedgerPayment("bea", "alex", 400)),
+        )
+        assertEquals(listOf(Transfer("bea", "alex", 600), Transfer("charles", "alex", 800)), transfers)
+    }
+
+    @Test fun everyMemberGetsTheSameNetUnderDirectAndSimplifiedModes() {
+        val direct = listOf(Transfer("alex", "bea", 500), Transfer("bea", "charles", 1_000))
+        val net = LedgerMath.netByPerson(listOf("alex", "bea", "charles"), direct)
+        val simplified = DebtSimplifier.simplify(net)
+        assertEquals(net, LedgerMath.netByPerson(net.keys, simplified))
+    }
 }

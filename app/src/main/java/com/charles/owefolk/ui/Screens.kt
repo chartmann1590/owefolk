@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -158,7 +160,12 @@ private fun GroupCard(group: Group, onClick: (Group) -> Unit) {
                 Text("${group.members.size} people • ${group.currencyCode}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
-                when { group.netMinorUnits > 0 -> "You’re owed ${Money(group.netMinorUnits, group.currencyCode).formatted()}"; group.netMinorUnits < 0 -> "You owe ${Money(-group.netMinorUnits, group.currencyCode).formatted()}"; else -> "All settled up" },
+                when {
+                    group.netMinorUnits > 0 -> "You’re owed ${Money(group.netMinorUnits, group.currencyCode).formatted()}"
+                    group.netMinorUnits < 0 -> "You owe ${Money(-group.netMinorUnits, group.currencyCode).formatted()}"
+                    group.repayments.isNotEmpty() -> "Your net is even • details inside"
+                    else -> "All settled up"
+                },
                 color = if (group.netMinorUnits >= 0) Mint else Coral, fontWeight = FontWeight.SemiBold,
             )
             AvatarStack(group.members)
@@ -214,7 +221,7 @@ fun ActivityScreen(activities: List<ActivityItem>) {
 @Composable
 fun ProfileScreen(
     user: Person,
-    onProviderChange: (PaymentProvider) -> Unit,
+    onPaymentPreferenceChange: (PaymentProvider, String?) -> Unit,
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     showAdPrivacyOptions: Boolean,
@@ -224,6 +231,8 @@ fun ProfileScreen(
     var analyticsEnabled by remember { mutableStateOf(com.charles.owefolk.observability.Telemetry.isCollectionEnabled(context)) }
     var confirmDeletion by remember { mutableStateOf(false) }
     var chooseProvider by remember { mutableStateOf(false) }
+    var editProvider by remember(user.preferredProvider) { mutableStateOf(user.preferredProvider) }
+    var editHandle by remember(user.paymentHandle) { mutableStateOf(user.paymentHandle.orEmpty()) }
     LazyColumn(
         Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -239,7 +248,13 @@ fun ProfileScreen(
         }
         item { SectionTitle("Getting paid") }
         item {
-            SettingsRow(Icons.Default.Payments, "Preferred payment method", providerLabel(user.preferredProvider)) {
+            SettingsRow(
+                Icons.Default.Payments,
+                "How friends should repay you",
+                listOfNotNull(providerLabel(user.preferredProvider), user.paymentHandle).joinToString(" • "),
+            ) {
+                editProvider = user.preferredProvider
+                editHandle = user.paymentHandle.orEmpty()
                 chooseProvider = true
             }
         }
@@ -258,25 +273,44 @@ fun ProfileScreen(
     if (chooseProvider) AlertDialog(
         onDismissRequest = { chooseProvider = false },
         icon = { Icon(Icons.Default.Payments, null) },
-        title = { Text("Preferred payment method") },
+        title = { Text("Your repayment details") },
         text = {
-            Column {
+            LazyColumn(Modifier.heightIn(max = 440.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 PaymentProvider.entries.forEach { provider ->
-                    Row(
-                        Modifier.fillMaxWidth().clickable {
-                            chooseProvider = false
-                            onProviderChange(provider)
-                        }.padding(vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(provider == user.preferredProvider, null)
-                        Spacer(Modifier.width(10.dp))
-                        Text(providerLabel(provider))
+                    item(key = provider.name) {
+                        Row(
+                            Modifier.fillMaxWidth().clickable { editProvider = provider }.padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(provider == editProvider, { editProvider = provider })
+                            Spacer(Modifier.width(8.dp))
+                            Text(providerLabel(provider))
+                        }
                     }
+                }
+                if (editProvider != PaymentProvider.CASH) item {
+                    OutlinedTextField(
+                        editHandle,
+                        { editHandle = it.take(160) },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        label = { Text(paymentHandleLabel(editProvider)) },
+                        supportingText = { Text("This is shared with your group members so the right person can repay you.") },
+                        singleLine = true,
+                    )
                 }
             }
         },
-        confirmButton = {},
+        confirmButton = {
+            val valid = editProvider == PaymentProvider.CASH ||
+                (editHandle.isNotBlank() && (editProvider != PaymentProvider.OTHER || editHandle.startsWith("https://")))
+            Button(
+                onClick = {
+                    onPaymentPreferenceChange(editProvider, editHandle.takeUnless { editProvider == PaymentProvider.CASH })
+                    chooseProvider = false
+                },
+                enabled = valid,
+            ) { Text("Save") }
+        },
         dismissButton = { TextButton(onClick = { chooseProvider = false }) { Text("Cancel") } },
     )
     if (confirmDeletion) AlertDialog(
@@ -472,55 +506,137 @@ fun GroupDetailSheet(
     onDismiss: () -> Unit,
     onReminder: () -> Unit,
     onInvite: () -> Unit,
-    onPaymentSent: (String, PaymentProvider) -> Unit,
+    onRepaymentModeChange: (Boolean) -> Unit,
+    onPaymentSent: (String, Long, PaymentProvider) -> Unit,
 ) {
     val context = LocalContext.current
-    var showPayOptions by remember { mutableStateOf(false) }
-    var selectedProvider by remember { mutableStateOf<PaymentProvider?>(null) }
-    val recipient = group.members.firstOrNull { it.id != currentUser.id }
+    var pendingMarkSent by remember { mutableStateOf<Repayment?>(null) }
+    val owedToYou = group.repayments.filter { it.to.id == currentUser.id }
+    val youOwe = group.repayments.filter { it.from.id == currentUser.id }
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.fillMaxWidth().padding(22.dp).navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(22.dp).navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(group.emoji, fontSize = 38.sp); Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) { Text(group.name, style = MaterialTheme.typography.headlineMedium); Text("${group.members.size} members • ${group.currencyCode}", color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), shape = RoundedCornerShape(22.dp)) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(if (group.netMinorUnits >= 0) "You’re owed" else "You owe")
+                    Text(when {
+                        group.netMinorUnits > 0 -> "You’re owed"
+                        group.netMinorUnits < 0 -> "You owe"
+                        owedToYou.isNotEmpty() || youOwe.isNotEmpty() -> "Your net balance"
+                        else -> "All settled up"
+                    })
                     Text(Money(kotlin.math.abs(group.netMinorUnits), group.currencyCode).formatted(), style = MaterialTheme.typography.displaySmall)
-                    Text(if (group.simplifyDebts) "Simplified repayments are on" else "Direct balances", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            AvatarStack(group.members)
-            if (group.netMinorUnits < 0) {
-                Button({ showPayOptions = !showPayOptions }, Modifier.fillMaxWidth()) { Icon(Icons.Default.Payments, null); Spacer(Modifier.width(8.dp)); Text("Settle up") }
-                AnimatedVisibility(showPayOptions) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Continue with", style = MaterialTheme.typography.titleMedium)
-                        PaymentProvider.entries.filter { it != PaymentProvider.CASH }.forEach { provider ->
-                            OutlinedButton(
-                                onClick = {
-                                    if (recipient != null) {
-                                        PaymentHandoff.launch(context, provider, recipient.paymentHandle, Money(-group.netMinorUnits), "Owefolk: ${group.name}")
-                                        selectedProvider = provider
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { Text("${providerLabel(provider)}${recipient?.let { " • ${it.name}" } ?: ""}") }
-                        }
-                        selectedProvider?.let { provider ->
-                            Button(
-                                onClick = { recipient?.let { onPaymentSent(it.id, provider) }; showPayOptions = false; selectedProvider = null },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { Icon(Icons.Default.Check, null); Spacer(Modifier.width(8.dp)); Text("I’ve sent it") }
-                        }
-                        Text("You’ll return to Owefolk and mark the payment sent. The recipient must confirm it.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (group.netMinorUnits == 0L && (owedToYou.isNotEmpty() || youOwe.isNotEmpty())) {
+                        Text("Incoming and outgoing repayments cancel out", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-            } else if (group.netMinorUnits > 0) {
+            }
+            ElevatedCard(shape = RoundedCornerShape(20.dp)) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(if (group.simplifyDebts) "Simplified repayments" else "Direct balances", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            if (group.simplifyDebts) "Use the fewest transfers across the group" else "Keep debts tied to who originally paid",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(group.simplifyDebts, onRepaymentModeChange)
+                }
+            }
+            Text("This setting is shared with everyone in the group.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            if (owedToYou.isNotEmpty()) {
+                SectionTitle("Who owes you", "${owedToYou.size} ${if (owedToYou.size == 1) "person" else "people"}")
+                owedToYou.forEach { repayment -> OwedToYouCard(repayment, currentUser) }
                 OutlinedButton(onReminder, Modifier.fillMaxWidth()) { Icon(Icons.Default.NotificationsActive, null); Spacer(Modifier.width(8.dp)); Text("Send a friendly reminder") }
             }
+            if (youOwe.isNotEmpty()) {
+                SectionTitle("Who you owe", "${youOwe.size} ${if (youOwe.size == 1) "payment" else "payments"}")
+                youOwe.forEach { repayment ->
+                    YouOweCard(
+                        repayment = repayment,
+                        launched = pendingMarkSent == repayment,
+                        onPay = {
+                            PaymentHandoff.launch(
+                                context,
+                                repayment.to.preferredProvider,
+                                repayment.to.paymentHandle,
+                                repayment.amount,
+                                "Owefolk: ${group.name}",
+                            )
+                            pendingMarkSent = repayment
+                        },
+                        onMarkSent = {
+                            onPaymentSent(repayment.to.id, repayment.amount.minorUnits, repayment.to.preferredProvider)
+                            pendingMarkSent = null
+                        },
+                    )
+                }
+                Text("After you mark a payment sent, the recipient must confirm it before balances change.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (owedToYou.isEmpty() && youOwe.isEmpty()) {
+                Text("No repayments are outstanding for you in this group.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             OutlinedButton(onInvite, Modifier.fillMaxWidth()) { Icon(Icons.Default.Share, null); Spacer(Modifier.width(8.dp)); Text("Invite friends") }
+        }
+    }
+}
+
+@Composable
+private fun OwedToYouCard(repayment: Repayment, currentUser: Person) {
+    ElevatedCard(shape = RoundedCornerShape(20.dp)) {
+        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Avatar(repayment.from, 44.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("${repayment.from.name} owes you", fontWeight = FontWeight.SemiBold)
+                Text(
+                    "They’ll see ${providerLabel(currentUser.preferredProvider)}${currentUser.paymentHandle?.let { " • $it" } ?: ""}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(repayment.amount.formatted(), style = MaterialTheme.typography.titleMedium, color = Mint)
+        }
+    }
+}
+
+@Composable
+private fun YouOweCard(repayment: Repayment, launched: Boolean, onPay: () -> Unit, onMarkSent: () -> Unit) {
+    val recipient = repayment.to
+    val paymentReady = recipient.preferredProvider == PaymentProvider.CASH || !recipient.paymentHandle.isNullOrBlank()
+    ElevatedCard(shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Avatar(recipient, 44.dp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("You owe ${recipient.name}", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        if (paymentReady) "${providerLabel(recipient.preferredProvider)}${recipient.paymentHandle?.let { " • $it" } ?: ""}"
+                        else "Waiting for ${recipient.name} to add repayment details",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(repayment.amount.formatted(), style = MaterialTheme.typography.titleMedium, color = Coral)
+            }
+            if (!launched) {
+                Button(onPay, Modifier.fillMaxWidth(), enabled = paymentReady) {
+                    Icon(Icons.Default.OpenInNew, null); Spacer(Modifier.width(8.dp))
+                    Text(if (recipient.preferredProvider == PaymentProvider.CASH) "Pay with cash" else "Open ${providerLabel(recipient.preferredProvider)}")
+                }
+            } else {
+                Button(onMarkSent, Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Check, null); Spacer(Modifier.width(8.dp)); Text("I’ve sent it")
+                }
+            }
         }
     }
 }
@@ -595,6 +711,15 @@ private fun providerLabel(provider: PaymentProvider) = when (provider) {
     PaymentProvider.ZELLE -> "Zelle"
     PaymentProvider.OTHER -> "Other payment link"
     PaymentProvider.CASH -> "Cash"
+}
+
+private fun paymentHandleLabel(provider: PaymentProvider) = when (provider) {
+    PaymentProvider.CASH_APP -> "Cash App cashtag or link"
+    PaymentProvider.PAYPAL -> "PayPal.Me name or link"
+    PaymentProvider.VENMO -> "Venmo username"
+    PaymentProvider.ZELLE -> "Zelle email or phone"
+    PaymentProvider.OTHER -> "Secure payment link"
+    PaymentProvider.CASH -> "No handle needed"
 }
 
 private fun relativeTime(timestamp: Instant): String {

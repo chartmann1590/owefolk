@@ -128,8 +128,8 @@ private suspend fun createOrUpdateProfile(user: com.google.firebase.auth.Firebas
     val initials = name.split(' ').filter(String::isNotBlank).take(2).joinToString("") { it.first().uppercase() }.ifBlank { "OF" }
     val profile = FirebaseFirestore.getInstance().collection("users").document(user.uid)
     if (profile.get().await().exists()) {
-        profile.set(mapOf("name" to name, "initials" to initials, "color" to 0xFF5B4BD8,
-            "preferredProvider" to "VENMO"), com.google.firebase.firestore.SetOptions.merge()).await()
+        profile.set(mapOf("name" to name, "initials" to initials, "color" to 0xFF5B4BD8),
+            com.google.firebase.firestore.SetOptions.merge()).await()
     } else {
         profile.set(mapOf("name" to name, "initials" to initials, "email" to user.email, "color" to 0xFF5B4BD8,
             "preferredProvider" to "VENMO", "createdAt" to FieldValue.serverTimestamp())).await()

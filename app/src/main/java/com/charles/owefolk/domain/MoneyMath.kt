@@ -58,3 +58,42 @@ object DebtSimplifier {
 
     private data class MutableBalance(val id: String, var amount: Long)
 }
+
+data class LedgerCharge(val paidById: String, val sharesMinorUnits: Map<String, Long>)
+data class LedgerPayment(val payerId: String, val recipientId: String, val amountMinorUnits: Long)
+
+object LedgerMath {
+    fun directTransfers(charges: List<LedgerCharge>, confirmedPayments: List<LedgerPayment>): List<Transfer> {
+        val debts = mutableMapOf<Pair<String, String>, Long>()
+
+        fun addDebt(fromId: String, toId: String, amount: Long) {
+            if (fromId == toId || amount <= 0) return
+            val reverse = toId to fromId
+            val reverseAmount = debts[reverse] ?: 0L
+            val cancelled = minOf(amount, reverseAmount)
+            if (cancelled == reverseAmount) debts.remove(reverse) else debts[reverse] = reverseAmount - cancelled
+            val remaining = amount - cancelled
+            if (remaining > 0) debts[fromId to toId] = (debts[fromId to toId] ?: 0L) + remaining
+        }
+
+        charges.forEach { charge ->
+            charge.sharesMinorUnits.forEach { (personId, amount) -> addDebt(personId, charge.paidById, amount) }
+        }
+        confirmedPayments.forEach { payment ->
+            addDebt(payment.recipientId, payment.payerId, payment.amountMinorUnits)
+        }
+        return debts.entries
+            .filter { it.value > 0 }
+            .sortedWith(compareBy({ it.key.first }, { it.key.second }))
+            .map { Transfer(it.key.first, it.key.second, it.value) }
+    }
+
+    fun netByPerson(memberIds: Collection<String>, transfers: List<Transfer>): Map<String, Long> {
+        val result = memberIds.associateWith { 0L }.toMutableMap()
+        transfers.forEach { transfer ->
+            result[transfer.fromId] = (result[transfer.fromId] ?: 0L) - transfer.minorUnits
+            result[transfer.toId] = (result[transfer.toId] ?: 0L) + transfer.minorUnits
+        }
+        return result
+    }
+}

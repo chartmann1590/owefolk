@@ -25,6 +25,8 @@ These are screenshots of the production Firebase build running on a connected Pi
 - On-device ML Kit receipt OCR from the camera or Android photo picker, with merchant/total suggestions that must be reviewed before saving.
 - Consent-gated anchored adaptive AdMob banners and frequency-capped interstitials shown only after a completed expense.
 - Deterministic integer-minor-unit math and debt simplification without rewriting financial history.
+- Per-person repayment details, with a group-wide switch between minimized transfers and direct payer relationships.
+- Member payment preferences and handles synchronized through Firestore so the person repaying always sees the recipient's chosen method.
 - Honest Venmo, Cash App, PayPal, Zelle, cash, or custom-link handoff. Payment details are copied and the real provider is opened; no private P2P API is impersonated.
 - Firebase Analytics, Crashlytics, Performance Monitoring, Remote Config, Cloud Messaging, and Play Integrity App Check integration with privacy-safe event boundaries.
 - Member-scoped Firestore security rules, single-use expiring invites, anonymizing in-app deletion, and a public deletion form backed by a Cloudflare Worker.

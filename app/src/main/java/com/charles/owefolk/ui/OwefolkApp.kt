@@ -117,7 +117,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
             }
             composable(RootDestination.ACTIVITY.route) { ActivityScreen(dashboard.activities) }
             composable(RootDestination.PROFILE.route) {
-                ProfileScreen(dashboard.user, onProviderChange = viewModel::updatePreferredProvider,
+                ProfileScreen(dashboard.user, onPaymentPreferenceChange = viewModel::updatePaymentPreference,
                     onSignOut = { FirebaseAuth.getInstance().signOut() },
                     onDeleteAccount = viewModel::deleteAccount,
                     showAdPrivacyOptions = privacyOptionsRequired,
@@ -139,7 +139,8 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
             viewModel.createGroup(name, emoji, currency) { showCreateGroup = false }
         }
     }
-    selectedGroup?.let { group ->
+    selectedGroup?.let { selected ->
+        val group = dashboard.groups.firstOrNull { it.id == selected.id } ?: selected
         GroupDetailSheet(
             group, dashboard.user, onDismiss = { selectedGroup = null }, onReminder = { viewModel.sendReminder(group.id) },
             onInvite = {
@@ -147,7 +148,8 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                     context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, "Join my ${group.name} group on Owefolk: $url") }, "Invite friends"))
                 }
             },
-            onPaymentSent = { recipientId, provider -> viewModel.startSettlement(group.id, recipientId, -group.netMinorUnits, provider) },
+            onRepaymentModeChange = { simplify -> viewModel.updateRepaymentMode(group.id, simplify) },
+            onPaymentSent = { recipientId, amount, provider -> viewModel.startSettlement(group.id, recipientId, amount, provider) },
         )
     }
 }
