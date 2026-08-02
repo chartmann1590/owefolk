@@ -1,31 +1,35 @@
 1
-00:00:00,000 --> 00:00:07,000
-Meet Owefolk: the shared-expense app built for friends, not spreadsheets.
+00:00:00,000 --> 00:00:06,000
+Meet Owefolk: shared tabs and clear friendships.
 
 2
-00:00:07,000 --> 00:00:15,000
-Sign in securely with Firebase, create a group, and see exactly where everyone stands.
+00:00:06,000 --> 00:00:15,000
+Sign in and see what you owe, what you are owed, and the group behind every balance.
 
 3
-00:00:15,000 --> 00:00:25,000
-Scan a receipt on-device to suggest the merchant and total, then review it before saving.
+00:00:15,000 --> 00:00:23,000
+Scan a receipt privately on-device, then review the merchant and total before saving.
 
 4
-00:00:25,000 --> 00:00:33,000
-Split a dinner, rental, or trip equally, exactly, or by percentage.
+00:00:23,000 --> 00:00:31,000
+Split equally, by exact amounts, or by percentage - always down to the cent.
 
 5
-00:00:33,000 --> 00:00:41,000
-Settle with Venmo, Cash App, PayPal, Zelle, or another real payment method.
+00:00:31,000 --> 00:00:39,000
+Keep direct payer relationships, or simplify the group into fewer repayments.
 
 6
-00:00:41,000 --> 00:00:49,000
-The payer marks it sent, the recipient confirms it, and every update stays visible.
+00:00:39,000 --> 00:00:49,000
+See who you owe, the exact amount, and their preferred payment provider and handle.
 
 7
 00:00:49,000 --> 00:00:58,000
-Privacy controls, consent-aware ads, encrypted deletion, analytics, performance, and crash reporting are built in.
+Open their payment method. Mark it sent only after paying; the recipient confirms it.
 
 8
-00:00:58,000 --> 00:01:01,000
-Owefolk: fair math, clear friendships.
+00:00:58,000 --> 00:01:04,000
+Every member stays in sync through a clear shared activity history.
+
+9
+00:01:04,000 --> 00:01:10,000
+Owefolk keeps fair math from getting awkward.

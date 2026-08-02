@@ -80,16 +80,32 @@ fun AuthScreen() {
                         label = { Text("Password") }, visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), singleLine = true,
                     )
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                busy = true
-                                message = runCatching { signInWithEmail(email, password) }.fold({ null }, { it.message ?: "Email sign-in failed" })
-                                busy = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(52.dp), enabled = email.contains('@') && password.length >= 8 && !busy,
-                    ) { Text("Continue with email") }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    busy = true
+                                    message = runCatching { createAccountWithEmail(email, password) }
+                                        .fold({ null }, { it.message ?: "Account creation failed" })
+                                    busy = false
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(52.dp),
+                            enabled = email.contains('@') && password.length >= 8 && !busy,
+                        ) { Text("Create account") }
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    busy = true
+                                    message = runCatching { signInWithEmail(email, password) }
+                                        .fold({ null }, { it.message ?: "Email sign-in failed" })
+                                    busy = false
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(52.dp),
+                            enabled = email.contains('@') && password.length >= 8 && !busy,
+                        ) { Text("Sign in") }
+                    }
                     message?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                 }
             }
@@ -117,9 +133,12 @@ private suspend fun signInWithGoogle(context: Context) {
 }
 
 private suspend fun signInWithEmail(email: String, password: String) {
-    val auth = FirebaseAuth.getInstance()
-    val result = runCatching { auth.signInWithEmailAndPassword(email.trim(), password).await() }
-        .getOrElse { auth.createUserWithEmailAndPassword(email.trim(), password).await() }
+    val result = FirebaseAuth.getInstance().signInWithEmailAndPassword(email.trim(), password).await()
+    createOrUpdateProfile(requireNotNull(result.user))
+}
+
+private suspend fun createAccountWithEmail(email: String, password: String) {
+    val result = FirebaseAuth.getInstance().createUserWithEmailAndPassword(email.trim(), password).await()
     createOrUpdateProfile(requireNotNull(result.user))
 }
 
