@@ -15,7 +15,9 @@ service cloud.firestore {
         && validText(request.resource.data.initials, 4)
         && request.resource.data.preferredProvider in ['VENMO', 'CASH_APP', 'PAYPAL', 'ZELLE', 'OTHER', 'CASH'];
       allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'preferredProvider', 'analyticsEnabled', 'digestEnabled', 'quietHours']);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'preferredProvider', 'paymentHandle', 'analyticsEnabled', 'digestEnabled', 'quietHours'])
+        && request.resource.data.preferredProvider in ['VENMO', 'CASH_APP', 'PAYPAL', 'ZELLE', 'OTHER', 'CASH']
+        && (!('paymentHandle' in request.resource.data) || (request.resource.data.paymentHandle is string && request.resource.data.paymentHandle.size() <= 160));
       allow delete: if isSelf(uid);
 
       match /tokens/{tokenId} {
@@ -36,7 +38,8 @@ service cloud.firestore {
         && validText(request.resource.data.name, 60)
         && request.resource.data.currencyCode.matches('^[A-Z]{3}$');
       allow update: if isMember(groupId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['simplifyDebts', 'updatedAt'])
+        && request.resource.data.simplifyDebts is bool;
       allow delete: if false;
 
       match /members/{uid} {
@@ -52,7 +55,9 @@ service cloud.firestore {
             )
           );
         allow update: if isSelf(uid)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'deleted']);
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'preferredProvider', 'paymentHandle', 'deleted'])
+          && (!('preferredProvider' in request.resource.data) || request.resource.data.preferredProvider in ['VENMO', 'CASH_APP', 'PAYPAL', 'ZELLE', 'OTHER', 'CASH'])
+          && (!('paymentHandle' in request.resource.data) || (request.resource.data.paymentHandle is string && request.resource.data.paymentHandle.size() <= 160));
         allow delete: if false;
       }
 

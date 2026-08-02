@@ -30,6 +30,13 @@ data class Group(
     val members: List<Person>,
     val netMinorUnits: Long,
     val simplifyDebts: Boolean = true,
+    val repayments: List<Repayment> = emptyList(),
+)
+
+data class Repayment(
+    val from: Person,
+    val to: Person,
+    val amount: Money,
 )
 
 enum class SplitMode { EQUAL, EXACT, PERCENT }

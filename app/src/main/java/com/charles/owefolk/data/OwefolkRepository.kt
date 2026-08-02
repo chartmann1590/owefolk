@@ -15,6 +15,7 @@ interface OwefolkRepository {
     suspend fun confirmSettlement(settlementId: String)
     suspend fun rejectSettlement(settlementId: String)
     suspend fun sendReminder(groupId: String)
-    suspend fun updatePreferredProvider(provider: PaymentProvider)
+    suspend fun updateRepaymentMode(groupId: String, simplifyDebts: Boolean)
+    suspend fun updatePaymentPreference(provider: PaymentProvider, paymentHandle: String?)
     suspend fun deleteAccount()
 }

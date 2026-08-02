@@ -87,7 +87,10 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         ))
         batch.set(group.collection("members").document(uid), mapOf(
             "uid" to uid, "name" to (user.getString("name") ?: "Friend"), "initials" to (user.getString("initials") ?: "OF"),
-            "color" to (user.getLong("color") ?: 0xFF5B4BD8), "role" to "admin", "joinedAt" to FieldValue.serverTimestamp(),
+            "color" to (user.getLong("color") ?: 0xFF5B4BD8),
+            "preferredProvider" to (user.getString("preferredProvider") ?: PaymentProvider.VENMO.name),
+            "paymentHandle" to (user.getString("paymentHandle") ?: ""),
+            "role" to "admin", "joinedAt" to FieldValue.serverTimestamp(),
         ))
         batch.set(db.collection("userGroups").document(uid).collection("groups").document(group.id),
             mapOf("groupId" to group.id, "joinedAt" to FieldValue.serverTimestamp()))
@@ -122,6 +125,8 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         batch.set(group.collection("members").document(uid), mapOf(
             "uid" to uid, "name" to (user.getString("name") ?: "Friend"),
             "initials" to (user.getString("initials") ?: "OF"), "color" to (user.getLong("color") ?: 0xFF5B4BD8),
+            "preferredProvider" to (user.getString("preferredProvider") ?: PaymentProvider.VENMO.name),
+            "paymentHandle" to (user.getString("paymentHandle") ?: ""),
             "role" to "member", "inviteId" to token, "joinedAt" to FieldValue.serverTimestamp(),
         ))
         batch.set(db.collection("userGroups").document(uid).collection("groups").document(groupId),
@@ -198,8 +203,32 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         group.update("updatedAt", FieldValue.serverTimestamp()).await()
     }
 
-    override suspend fun updatePreferredProvider(provider: PaymentProvider) {
-        db.collection("users").document(uid()).update("preferredProvider", provider.name).await()
+    override suspend fun updateRepaymentMode(groupId: String, simplifyDebts: Boolean) {
+        db.collection("groups").document(groupId).update(mapOf(
+            "simplifyDebts" to simplifyDebts,
+            "updatedAt" to FieldValue.serverTimestamp(),
+        )).await()
+    }
+
+    override suspend fun updatePaymentPreference(provider: PaymentProvider, paymentHandle: String?) {
+        val handle = paymentHandle?.trim()?.takeUnless(String::isBlank)
+        if (provider != PaymentProvider.CASH) {
+            require(handle != null) { "Add the handle or link people should use to repay you" }
+            require(handle.length <= 160) { "Payment details are too long" }
+            if (provider == PaymentProvider.OTHER) require(handle.startsWith("https://")) { "Use a secure https:// payment link" }
+        }
+        val uid = uid()
+        val links = db.collection("userGroups").document(uid).collection("groups").get().await()
+        val fields = mapOf<String, Any>(
+            "preferredProvider" to provider.name,
+            "paymentHandle" to (handle ?: FieldValue.delete()),
+        )
+        val batch = db.batch()
+        batch.update(db.collection("users").document(uid), fields)
+        links.documents.forEach { link ->
+            batch.update(db.collection("groups").document(link.id).collection("members").document(uid), fields)
+        }
+        batch.commit().await()
     }
 
     override suspend fun deleteAccount() {
@@ -208,7 +237,8 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         val batch = db.batch()
         links.documents.forEach { link ->
             batch.update(db.collection("groups").document(link.id).collection("members").document(user.uid),
-                mapOf("name" to "Deleted member", "initials" to "—", "color" to 0xFF928D9A, "deleted" to true))
+                mapOf("name" to "Deleted member", "initials" to "—", "color" to 0xFF928D9A,
+                    "preferredProvider" to FieldValue.delete(), "paymentHandle" to FieldValue.delete(), "deleted" to true))
             batch.delete(link.reference)
         }
         batch.delete(db.collection("users").document(user.uid))
@@ -226,21 +256,42 @@ class FirebaseOwefolkRepository : OwefolkRepository {
             val groupRef = db.collection("groups").document(groupId)
             val groupDoc = groupRef.get().await()
             if (!groupDoc.exists()) continue
-            val members = groupRef.collection("members").get().await().documents.map { it.toPerson(it.id) }
-            var net = 0L
-            groupRef.collection("expenses").whereEqualTo("deleted", false).get().await().documents.forEach { expense ->
-                if (expense.getString("paidById") == uid) net += expense.getLong("totalMinorUnits") ?: 0
+            val members = groupRef.collection("members").get().await().documents.map { document ->
+                document.toPerson(document.id).let {
+                    if (it.id == uid) it.copy(preferredProvider = user.preferredProvider, paymentHandle = user.paymentHandle) else it
+                }
+            }
+            val expenseDocs = groupRef.collection("expenses").whereEqualTo("deleted", false).get().await().documents
+            val charges = expenseDocs.map { expense ->
                 val allocations = expense.get("allocations") as? List<Map<String, Any>> ?: emptyList()
-                net -= (allocations.firstOrNull { it["personId"] == uid }?.get("minorUnits") as? Number)?.toLong() ?: 0
+                LedgerCharge(
+                    expense.getString("paidById") ?: "",
+                    allocations.mapNotNull { allocation ->
+                        val personId = allocation["personId"] as? String ?: return@mapNotNull null
+                        val amount = (allocation["minorUnits"] as? Number)?.toLong() ?: return@mapNotNull null
+                        personId to amount
+                    }.toMap(),
+                )
             }
             val settlementDocs = groupRef.collection("settlements").get().await().documents
-            settlementDocs.filter { it.getString("status") == "confirmed" }.forEach { settlement ->
-                val amount = settlement.getLong("amountMinorUnits") ?: 0
-                if (settlement.getString("payerId") == uid) net += amount
-                if (settlement.getString("recipientId") == uid) net -= amount
+            val confirmedPayments = settlementDocs.filter { it.getString("status") == "confirmed" }.mapNotNull { settlement ->
+                val payerId = settlement.getString("payerId") ?: return@mapNotNull null
+                val recipientId = settlement.getString("recipientId") ?: return@mapNotNull null
+                LedgerPayment(payerId, recipientId, settlement.getLong("amountMinorUnits") ?: 0L)
+            }
+            val directTransfers = LedgerMath.directTransfers(charges, confirmedPayments)
+            val netByPerson = LedgerMath.netByPerson(members.map(Person::id), directTransfers)
+            val simplified = groupDoc.getBoolean("simplifyDebts") ?: true
+            val transfers = if (simplified) DebtSimplifier.simplify(netByPerson) else directTransfers
+            val currency = groupDoc.getString("currencyCode") ?: "USD"
+            val peopleById = members.associateBy(Person::id)
+            val repayments = transfers.mapNotNull { transfer ->
+                val from = peopleById[transfer.fromId] ?: return@mapNotNull null
+                val to = peopleById[transfer.toId] ?: return@mapNotNull null
+                Repayment(from, to, Money(transfer.minorUnits, currency))
             }
             val group = Group(groupId, groupDoc.getString("name") ?: "Group", groupDoc.getString("emoji") ?: "👥",
-                groupDoc.getString("currencyCode") ?: "USD", members, net, groupDoc.getBoolean("simplifyDebts") ?: true)
+                currency, members, netByPerson[uid] ?: 0L, simplified, repayments)
             groups += group
             settlementDocs.filter { it.getString("payerId") == uid || it.getString("recipientId") == uid }.forEach { doc ->
                 val payer = members.firstOrNull { it.id == doc.getString("payerId") } ?: return@forEach

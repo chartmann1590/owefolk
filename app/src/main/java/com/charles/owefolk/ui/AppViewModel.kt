@@ -39,9 +39,14 @@ class AppViewModel(private val repository: OwefolkRepository) : ViewModel() {
     fun confirmSettlement(id: String) = action("Payment confirmed", event = "settlement_confirmed") { repository.confirmSettlement(id) }
     fun rejectSettlement(id: String) = action("Payment marked for review", event = "settlement_rejected") { repository.rejectSettlement(id) }
     fun sendReminder(groupId: String) = action("Friendly reminder sent", event = "reminder_sent") { repository.sendReminder(groupId) }
-    fun updatePreferredProvider(provider: com.charles.owefolk.domain.PaymentProvider) =
-        action("Preferred payment method updated", event = "payment_preference_updated",
-            parameters = mapOf("provider" to provider.name.lowercase())) { repository.updatePreferredProvider(provider) }
+    fun updateRepaymentMode(groupId: String, simplifyDebts: Boolean) =
+        action(if (simplifyDebts) "Simplified repayments enabled" else "Direct balances enabled",
+            event = "repayment_mode_updated", parameters = mapOf("simplified" to simplifyDebts)) {
+            repository.updateRepaymentMode(groupId, simplifyDebts)
+        }
+    fun updatePaymentPreference(provider: com.charles.owefolk.domain.PaymentProvider, paymentHandle: String?) =
+        action("Payment details updated", event = "payment_preference_updated",
+            parameters = mapOf("provider" to provider.name.lowercase())) { repository.updatePaymentPreference(provider, paymentHandle) }
     fun clearMessage() { message.value = null }
     fun deleteAccount() = action("Account deleted", event = "account_deleted") { repository.deleteAccount() }
 
