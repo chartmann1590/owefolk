@@ -3,6 +3,7 @@ package com.charles.owefolk.notifications
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.charles.owefolk.MainActivity
@@ -14,7 +15,8 @@ class OwefolkMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Owefolk updates", NotificationManager.IMPORTANCE_DEFAULT))
-        val intent = Intent(this, MainActivity::class.java).apply {
+        val intent = Intent().apply {
+            component = ComponentName(this@OwefolkMessagingService, MainActivity::class.java)
             setPackage(packageName)
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             message.data["link"]?.let { android.net.Uri.parse(it) }
