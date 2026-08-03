@@ -15,8 +15,11 @@ class OwefolkMessagingService : FirebaseMessagingService() {
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Owefolk updates", NotificationManager.IMPORTANCE_DEFAULT))
         val intent = Intent(this, MainActivity::class.java).apply {
+            setPackage(packageName)
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            message.data["link"]?.let { data = android.net.Uri.parse(it) }
+            message.data["link"]?.let { android.net.Uri.parse(it) }
+                ?.takeIf { it.scheme == "owefolk" && it.host == "invite" }
+                ?.let { data = it }
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
