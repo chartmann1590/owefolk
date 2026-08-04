@@ -13,9 +13,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,6 +30,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -47,6 +51,8 @@ import com.charles.owefolk.ui.theme.Mint
 import java.time.Duration
 import java.time.Instant
 import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -348,6 +354,21 @@ fun CreateGroupDialog(busy: Boolean, onDismiss: () -> Unit, onCreate: (String, S
     )
 }
 
+// BringIntoViewRequester's automatic scroll races the IME resize animation and
+// settles before the keyboard finishes shrinking the viewport, leaving the
+// focused field hidden. Explicitly scrolling the item to the top of the list
+// after the keyboard has time to animate in is reliable regardless of timing.
+private fun Modifier.scrollListItemIntoViewOnFocus(scope: CoroutineScope, listState: LazyListState, itemIndex: Int): Modifier = composed {
+    this.onFocusEvent { state ->
+        if (state.isFocused) {
+            scope.launch {
+                delay(250)
+                listState.animateScrollToItem(itemIndex)
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, onSave: (NewExpense) -> Unit) {
@@ -408,9 +429,10 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
     }
 
     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val listState = rememberLazyListState()
     ModalBottomSheet(onDismissRequest = onDismiss, dragHandle = { BottomSheetDefaults.DragHandle() }) {
         LazyColumn(
-            Modifier.fillMaxWidth().imePadding(), contentPadding = PaddingValues(22.dp, 4.dp, 22.dp, 36.dp + navBarBottom),
+            Modifier.fillMaxWidth().imePadding(), state = listState, contentPadding = PaddingValues(22.dp, 4.dp, 22.dp, 36.dp + navBarBottom),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { Text("Add an expense", style = MaterialTheme.typography.headlineMedium) }
@@ -453,9 +475,12 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
                     items(groups, key = Group::id) { group -> FilterChip(selected = selectedGroup?.id == group.id, onClick = { selectedGroup = group }, label = { Text("${group.emoji} ${group.name}") }) }
                 }
             }
-            item { OutlinedTextField(title, { title = it.take(80) }, Modifier.fillMaxWidth(), label = { Text("What was it for?") }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.ReceiptLong, null) }, singleLine = true) }
             item {
-                OutlinedTextField(amountText, { amountText = it.filter { char -> char.isDigit() || char == '.' } }, Modifier.fillMaxWidth(),
+                OutlinedTextField(title, { title = it.take(80) }, Modifier.fillMaxWidth().scrollListItemIntoViewOnFocus(scope, listState, 3),
+                    label = { Text("What was it for?") }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.ReceiptLong, null) }, singleLine = true)
+            }
+            item {
+                OutlinedTextField(amountText, { amountText = it.filter { char -> char.isDigit() || char == '.' } }, Modifier.fillMaxWidth().scrollListItemIntoViewOnFocus(scope, listState, 4),
                     label = { Text("Amount") }, prefix = { Text("$") }, textStyle = MaterialTheme.typography.headlineMedium,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
             }
