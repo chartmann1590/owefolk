@@ -430,7 +430,8 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
 
     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val listState = rememberLazyListState()
-    ModalBottomSheet(onDismissRequest = onDismiss, dragHandle = { BottomSheetDefaults.DragHandle() }) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, dragHandle = { BottomSheetDefaults.DragHandle() }) {
         LazyColumn(
             Modifier.fillMaxWidth().imePadding(), state = listState, contentPadding = PaddingValues(22.dp, 4.dp, 22.dp, 36.dp + navBarBottom),
             verticalArrangement = Arrangement.spacedBy(16.dp),
