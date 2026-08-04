@@ -409,7 +409,7 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
 
     ModalBottomSheet(onDismissRequest = onDismiss, dragHandle = { BottomSheetDefaults.DragHandle() }) {
         LazyColumn(
-            Modifier.fillMaxWidth().imePadding(), contentPadding = PaddingValues(22.dp, 4.dp, 22.dp, 36.dp),
+            Modifier.fillMaxWidth().navigationBarsPadding().imePadding(), contentPadding = PaddingValues(22.dp, 4.dp, 22.dp, 36.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { Text("Add an expense", style = MaterialTheme.typography.headlineMedium) }
