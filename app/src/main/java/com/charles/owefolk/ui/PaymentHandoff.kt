@@ -22,7 +22,7 @@ object PaymentHandoff {
             PaymentProvider.PAYPAL -> handle
                 ?.let { value ->
                     if (value.startsWith("https://paypal.me/")) Uri.parse("${value.trimEnd('/')}/$decimalAmount${amount.currencyCode}")
-                    else Uri.parse("https://paypal.me/${value.trimStart('@')}/$decimalAmount${amount.currencyCode}")
+                    else Uri.parse("https://paypal.me/${Uri.encode(value.trimStart('@'))}/$decimalAmount${amount.currencyCode}")
                 }
                 ?: Uri.parse("https://www.paypal.com/myaccount/transfer/homepage")
             PaymentProvider.CASH_APP -> handle?.let { value ->

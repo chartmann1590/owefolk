@@ -11,7 +11,7 @@ class OwefolkApplication : Application() {
         Telemetry.initialize(this)
         FirebaseApp.initializeApp(this)
         FirebaseEnvironment.configure()
-        FirebaseCrashlytics.getInstance().setCustomKey("build_mode", "firebase")
+        FirebaseCrashlytics.getInstance().setCustomKey("build_mode", BuildConfig.BUILD_TYPE)
         FirebaseRemoteConfig.getInstance().apply {
             setDefaultsAsync(mapOf("payment_handoffs_enabled" to true, "digest_enabled" to true))
             fetchAndActivate()

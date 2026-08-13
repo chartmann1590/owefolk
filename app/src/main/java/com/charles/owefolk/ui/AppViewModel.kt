@@ -61,10 +61,9 @@ class AppViewModel(private val repository: OwefolkRepository) : ViewModel() {
     }
 
     companion object {
-        val Factory = object : ViewModelProvider.Factory {
+        fun Factory(repository: OwefolkRepository = FirebaseOwefolkRepository()): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repository: OwefolkRepository = FirebaseOwefolkRepository()
                 return AppViewModel(repository) as T
             }
         }

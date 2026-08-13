@@ -11,7 +11,11 @@ import com.charles.owefolk.observability.Telemetry
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.tasks.await
 import java.time.Instant
 import java.util.Date
@@ -19,11 +23,20 @@ import java.util.UUID
 
 class FirebaseOwefolkRepository : OwefolkRepository {
     private val auth by lazy { FirebaseAuth.getInstance() }
-    private val db by lazy { FirebaseFirestore.getInstance() }
+    private val db by lazy {
+        FirebaseFirestore.getInstance().also { firestore ->
+            val settings = com.google.firebase.firestore.FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .setCacheSizeBytes(com.google.firebase.firestore.FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
+                .build()
+            firestore.firestoreSettings = settings
+        }
+    }
 
     override val dashboard: Flow<Dashboard> = callbackFlow {
         val registrations = mutableListOf<ListenerRegistration>()
         var groupIds = emptyList<String>()
+        var version = 0
 
         fun clearListeners() {
             registrations.forEach(ListenerRegistration::remove)
@@ -31,15 +44,17 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         }
 
         fun refresh(uid: String) {
+            val expectedVersion = version
             launch {
                 runCatching { loadDashboard(uid, groupIds) }
-                    .onSuccess(::trySend)
-                    .onFailure { Telemetry.record(it, "dashboard_refresh") }
+                    .onSuccess { if (version == expectedVersion) trySend(it) }
+                    .onFailure { if (version == expectedVersion) Telemetry.record(it, "dashboard_refresh") }
             }
         }
 
         fun observe(uid: String) {
             clearListeners()
+            version++
             registrations += db.collection("users").document(uid).addSnapshotListener { _, error ->
                 if (error != null) Telemetry.record(error, "user_listener") else refresh(uid)
             }
@@ -249,65 +264,88 @@ class FirebaseOwefolkRepository : OwefolkRepository {
     private suspend fun loadDashboard(uid: String, groupIds: List<String>): Dashboard {
         val userDoc = db.collection("users").document(uid).get().await()
         val user = userDoc.toPerson(uid)
-        val groups = mutableListOf<Group>()
-        val allActivities = mutableListOf<ActivityItem>()
-        val allSettlements = mutableListOf<Settlement>()
-        for (groupId in groupIds) {
-            val groupRef = db.collection("groups").document(groupId)
-            val groupDoc = groupRef.get().await()
-            if (!groupDoc.exists()) continue
-            val members = groupRef.collection("members").get().await().documents.map { document ->
-                document.toPerson(document.id).let {
-                    if (it.id == uid) it.copy(preferredProvider = user.preferredProvider, paymentHandle = user.paymentHandle) else it
-                }
-            }
-            val expenseDocs = groupRef.collection("expenses").whereEqualTo("deleted", false).get().await().documents
-            val charges = expenseDocs.map { expense ->
-                val allocations = expense.get("allocations") as? List<Map<String, Any>> ?: emptyList()
-                LedgerCharge(
-                    expense.getString("paidById") ?: "",
-                    allocations.mapNotNull { allocation ->
-                        val personId = allocation["personId"] as? String ?: return@mapNotNull null
-                        val amount = (allocation["minorUnits"] as? Number)?.toLong() ?: return@mapNotNull null
-                        personId to amount
-                    }.toMap(),
-                )
-            }
-            val settlementDocs = groupRef.collection("settlements").get().await().documents
-            val confirmedPayments = settlementDocs.filter { it.getString("status") == "confirmed" }.mapNotNull { settlement ->
-                val payerId = settlement.getString("payerId") ?: return@mapNotNull null
-                val recipientId = settlement.getString("recipientId") ?: return@mapNotNull null
-                LedgerPayment(payerId, recipientId, settlement.getLong("amountMinorUnits") ?: 0L)
-            }
-            val directTransfers = LedgerMath.directTransfers(charges, confirmedPayments)
-            val netByPerson = LedgerMath.netByPerson(members.map(Person::id), directTransfers)
-            val simplified = groupDoc.getBoolean("simplifyDebts") ?: true
-            val transfers = if (simplified) DebtSimplifier.simplify(netByPerson) else directTransfers
-            val currency = groupDoc.getString("currencyCode") ?: "USD"
-            val peopleById = members.associateBy(Person::id)
-            val repayments = transfers.mapNotNull { transfer ->
-                val from = peopleById[transfer.fromId] ?: return@mapNotNull null
-                val to = peopleById[transfer.toId] ?: return@mapNotNull null
-                Repayment(from, to, Money(transfer.minorUnits, currency))
-            }
-            val group = Group(groupId, groupDoc.getString("name") ?: "Group", groupDoc.getString("emoji") ?: "👥",
-                currency, members, netByPerson[uid] ?: 0L, simplified, repayments)
-            groups += group
-            settlementDocs.filter { it.getString("payerId") == uid || it.getString("recipientId") == uid }.forEach { doc ->
-                val payer = members.firstOrNull { it.id == doc.getString("payerId") } ?: return@forEach
-                val recipient = members.firstOrNull { it.id == doc.getString("recipientId") } ?: return@forEach
-                allSettlements += Settlement("$groupId|${doc.id}", payer, recipient,
-                    Money(doc.getLong("amountMinorUnits") ?: 0, doc.getString("currencyCode") ?: group.currencyCode),
-                    PaymentProvider.valueOf((doc.getString("provider") ?: "other").uppercase()),
-                    SettlementStatus.valueOf((doc.getString("status") ?: "sent").uppercase()), doc.instant("createdAt"))
-            }
-            groupRef.collection("activity").orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING).limit(30).get().await().documents.forEach { doc ->
-                allActivities += ActivityItem(doc.id, ActivityKind.valueOf((doc.getString("kind") ?: "member").uppercase()),
-                    doc.getString("title") ?: "Group update", doc.getString("detail") ?: group.name, doc.instant("timestamp"),
-                    doc.getLong("amountMinorUnits")?.let { Money(it, doc.getString("currencyCode") ?: group.currencyCode) })
+        val groupResults = supervisorScope {
+            groupIds.map { groupId ->
+                async { runCatching { loadGroup(uid, groupId, user) }.getOrNull() }
+            }.awaitAll()
+        }
+        val groups = groupResults.mapNotNull { it?.first }.toMutableList()
+        val allActivities = groupResults.flatMap { it?.second.orEmpty() }.toMutableList()
+        val allSettlements = groupResults.flatMap { it?.third.orEmpty() }.toMutableList()
+        return Dashboard(user, groups.sortedBy { it.name }, allActivities.sortedByDescending { it.timestamp }.take(30), allSettlements)
+    }
+
+    private suspend fun loadGroup(uid: String, groupId: String, currentUser: Person): Triple<Group?, List<ActivityItem>, List<Settlement>> = coroutineScope {
+        val groupRef = db.collection("groups").document(groupId)
+        val groupDocDeferred = async { groupRef.get().await() }
+        val membersDeferred = async { groupRef.collection("members").get().await() }
+        val expensesDeferred = async { groupRef.collection("expenses").whereEqualTo("deleted", false).orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING).limit(50).get().await() }
+        val settlementsDeferred = async { groupRef.collection("settlements").orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING).limit(50).get().await() }
+        val activityDeferred = async { groupRef.collection("activity").orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING).limit(30).get().await() }
+
+        val groupDoc = groupDocDeferred.await()
+        if (!groupDoc.exists()) return@coroutineScope Triple(null, emptyList(), emptyList())
+
+        val members = membersDeferred.await().documents.map { document ->
+            document.toPerson(document.id).let {
+                if (it.id == uid) it.copy(preferredProvider = currentUser.preferredProvider, paymentHandle = currentUser.paymentHandle) else it
             }
         }
-        return Dashboard(user, groups.sortedBy { it.name }, allActivities.sortedByDescending { it.timestamp }.take(30), allSettlements)
+        val expenseDocs = expensesDeferred.await().documents
+        val charges = expenseDocs.map { expense ->
+            val allocations = expense.get("allocations") as? List<Map<String, Any>> ?: emptyList()
+            LedgerCharge(
+                expense.getString("paidById") ?: "",
+                allocations.mapNotNull { allocation ->
+                    val personId = allocation["personId"] as? String ?: return@mapNotNull null
+                    val amount = (allocation["minorUnits"] as? Number)?.toLong() ?: return@mapNotNull null
+                    personId to amount
+                }.toMap(),
+            )
+        }
+        val settlementDocs = settlementsDeferred.await().documents
+        val confirmedPayments = settlementDocs.filter { it.getString("status") == "confirmed" }.mapNotNull { settlement ->
+            val payerId = settlement.getString("payerId") ?: return@mapNotNull null
+            val recipientId = settlement.getString("recipientId") ?: return@mapNotNull null
+            LedgerPayment(payerId, recipientId, settlement.getLong("amountMinorUnits") ?: 0L)
+        }
+        val directTransfers = LedgerMath.directTransfers(charges, confirmedPayments)
+        val netByPerson = LedgerMath.netByPerson(members.map(Person::id), directTransfers)
+        val simplified = groupDoc.getBoolean("simplifyDebts") ?: true
+        val transfers = if (simplified) DebtSimplifier.simplify(netByPerson) else directTransfers
+        val currency = groupDoc.getString("currencyCode") ?: "USD"
+        val peopleById = members.associateBy(Person::id)
+        val repayments = transfers.mapNotNull { transfer ->
+            val from = peopleById[transfer.fromId]
+            if (from == null) {
+                Telemetry.record(IllegalStateException("Missing member ${transfer.fromId} in group $groupId"), "missing_member")
+                return@mapNotNull null
+            }
+            val to = peopleById[transfer.toId]
+            if (to == null) {
+                Telemetry.record(IllegalStateException("Missing member ${transfer.toId} in group $groupId"), "missing_member")
+                return@mapNotNull null
+            }
+            Repayment(from, to, Money(transfer.minorUnits, currency))
+        }
+        val group = Group(groupId, groupDoc.getString("name") ?: "Group", groupDoc.getString("emoji") ?: "👥",
+            currency, members, netByPerson[uid] ?: 0L, simplified, repayments)
+        val groupSettlements = mutableListOf<Settlement>()
+        settlementDocs.filter { it.getString("payerId") == uid || it.getString("recipientId") == uid }.forEach { doc ->
+            val payer = members.firstOrNull { it.id == doc.getString("payerId") } ?: return@forEach
+            val recipient = members.firstOrNull { it.id == doc.getString("recipientId") } ?: return@forEach
+            groupSettlements += Settlement("$groupId|${doc.id}", payer, recipient,
+                Money(doc.getLong("amountMinorUnits") ?: 0, doc.getString("currencyCode") ?: group.currencyCode),
+                PaymentProvider.valueOf((doc.getString("provider") ?: "other").uppercase()),
+                SettlementStatus.valueOf((doc.getString("status") ?: "sent").uppercase()), doc.instant("createdAt"))
+        }
+        val groupActivities = mutableListOf<ActivityItem>()
+        activityDeferred.await().documents.forEach { doc ->
+            groupActivities += ActivityItem(doc.id, ActivityKind.valueOf((doc.getString("kind") ?: "member").uppercase()),
+                doc.getString("title") ?: "Group update", doc.getString("detail") ?: group.name, doc.instant("timestamp"),
+                doc.getLong("amountMinorUnits")?.let { Money(it, doc.getString("currencyCode") ?: group.currencyCode) })
+        }
+        Triple(group, groupActivities, groupSettlements)
     }
 
     private fun DocumentSnapshot.toPerson(fallbackId: String) = Person(
@@ -321,7 +359,8 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         getString("paymentHandle")?.takeUnless(String::isBlank),
     )
 
-    private fun DocumentSnapshot.instant(field: String): Instant = getTimestamp(field)?.toDate()?.toInstant() ?: Instant.now()
+    private fun DocumentSnapshot.instant(field: String): Instant = getTimestamp(field)?.toDate()?.toInstant()
+        ?: Instant.ofEpochMilli(getLong(field) ?: System.currentTimeMillis())
     private fun uid(): String = requireNotNull(auth.currentUser?.uid) { "Sign in required" }
     private fun emptyDashboard() = Dashboard(Person("signed-out", "Friend", "OF", 0xFF5B4BD8), emptyList(), emptyList(), emptyList())
 }

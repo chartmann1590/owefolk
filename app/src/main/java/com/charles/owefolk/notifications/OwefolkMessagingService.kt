@@ -15,13 +15,17 @@ class OwefolkMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Owefolk updates", NotificationManager.IMPORTANCE_DEFAULT))
+        val inviteUri = message.data["link"]?.let { android.net.Uri.parse(it) }
+        val validUri = inviteUri?.let { uri ->
+            val isWebInvite = uri.toString().startsWith("https://chartmann1590.github.io/owefolk/invite.html")
+            val isDeepLink = uri.scheme == "owefolk" && uri.host == "invite"
+            if (isWebInvite || isDeepLink) uri else null
+        }
         val intent = Intent().apply {
             component = ComponentName(this@OwefolkMessagingService, MainActivity::class.java)
             setPackage(packageName)
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            message.data["link"]?.let { android.net.Uri.parse(it) }
-                ?.takeIf { it.scheme == "owefolk" && it.host == "invite" }
-                ?.let { putExtra(EXTRA_INVITE_URI, it.toString()) }
+            validUri?.let { putExtra(EXTRA_INVITE_URI, it.toString()) }
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)

@@ -52,4 +52,31 @@ class MoneyMathTest {
         val simplified = DebtSimplifier.simplify(net)
         assertEquals(net, LedgerMath.netByPerson(net.keys, simplified))
     }
+
+    @Test fun equalSplitWithOneParticipantReturnsFullAmount() {
+        val result = MoneyMath.splitEqual(5_000, listOf("alex"))
+        assertEquals(mapOf("alex" to 5_000L), result)
+    }
+
+    @Test fun validateExactRejectsEmptyShares() {
+        assertEquals(false, MoneyMath.validateExact(500, emptyMap()))
+    }
+
+    @Test fun validateExactRejectsNegativeShares() {
+        assertEquals(false, MoneyMath.validateExact(500, mapOf("a" to -100)))
+    }
+
+    @Test fun debtSimplifierHandlesEmptyInput() {
+        assertEquals(emptyList<Transfer>(), DebtSimplifier.simplify(emptyMap()))
+    }
+
+    @Test fun netByPersonHandlesEmptyTransfers() {
+        val net = LedgerMath.netByPerson(listOf("alex", "bea"), emptyList())
+        assertEquals(mapOf("alex" to 0L, "bea" to 0L), net)
+    }
+
+    @Test fun splitPercentWithSingleParticipant() {
+        val result = MoneyMath.splitPercent(1_000, mapOf("alex" to 10_000))
+        assertEquals(mapOf("alex" to 1_000L), result)
+    }
 }

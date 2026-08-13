@@ -41,4 +41,29 @@ class ReceiptParserTest {
         assertEquals("FARMERS MARKET", result.merchant)
         assertNull(result.totalMinorUnits)
     }
+
+    @Test fun `parses single decimal digit amounts`() {
+        val result = ReceiptParser.parse("STORE\nTotal $4.5")
+        assertEquals(450L, result.totalMinorUnits)
+    }
+
+    @Test fun `parses euro symbol amounts`() {
+        val result = ReceiptParser.parse("CAFE\nTotal €12.50")
+        assertEquals(1_250L, result.totalMinorUnits)
+    }
+
+    @Test fun `parses comma decimal separator`() {
+        val result = ReceiptParser.parse("BAKERY\nTotal 19,97")
+        assertEquals(1_997L, result.totalMinorUnits)
+    }
+
+    @Test fun `ignores subtotal and tax lines`() {
+        val result = ReceiptParser.parse("""
+            GROCERY
+            Subtotal 30.00
+            Tax 2.40
+            Total 32.40
+        """.trimIndent())
+        assertEquals(3_240L, result.totalMinorUnits)
+    }
 }

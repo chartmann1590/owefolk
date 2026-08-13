@@ -21,6 +21,11 @@ import androidx.compose.ui.platform.LocalContext
 import android.app.Activity
 import com.charles.owefolk.ads.AdMobBanner
 import com.charles.owefolk.ads.AdsManager
+import com.charles.owefolk.data.FirebaseOwefolkRepository
+import com.charles.owefolk.observability.Telemetry
+import android.content.Context
+import com.charles.owefolk.R
+import androidx.compose.ui.res.stringResource
 
 private enum class RootDestination(val route: String, val label: String, val icon: ImageVector) {
     HOME("home", "Home", Icons.Default.Home),
@@ -30,19 +35,56 @@ private enum class RootDestination(val route: String, val label: String, val ico
 }
 
 @Composable
-fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)) {
+fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(FirebaseOwefolkRepository()))) {
     var signedIn by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
     DisposableEffect(Unit) {
         val listener = FirebaseAuth.AuthStateListener { signedIn = it.currentUser != null }
         FirebaseAuth.getInstance().addAuthStateListener(listener)
         onDispose { FirebaseAuth.getInstance().removeAuthStateListener(listener) }
     }
+    val context = LocalContext.current
+    var showConsent by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val prefs = context.getSharedPreferences("telemetry", Context.MODE_PRIVATE)
+        val seen = prefs.getBoolean("consent_seen", false)
+        if (!seen) showConsent = true
+    }
+
+    if (showConsent) {
+        AlertDialog(
+            onDismissRequest = { showConsent = false },
+            icon = { Icon(Icons.Default.Shield, null) },
+            title = { Text(stringResource(R.string.consent_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.consent_text))
+                    Text(stringResource(R.string.consent_no_personal), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.consent_change_anytime), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    Telemetry.setCollectionEnabled(context, true)
+                    context.getSharedPreferences("telemetry", Context.MODE_PRIVATE).edit().putBoolean("consent_seen", true).apply()
+                    showConsent = false
+                }) { Text(stringResource(R.string.consent_allow)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    Telemetry.setCollectionEnabled(context, false)
+                    context.getSharedPreferences("telemetry", Context.MODE_PRIVATE).edit().putBoolean("consent_seen", true).apply()
+                    showConsent = false
+                }) { Text(stringResource(R.string.consent_decline)) }
+            },
+        )
+    }
+
     if (!signedIn) {
         AuthScreen()
         return
     }
     val state by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val dashboard = state.dashboard
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -87,7 +129,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(destination.icon, null) },
+                            icon = { Icon(destination.icon, destination.label) },
                             label = { Text(destination.label) },
                         )
                     }
@@ -99,7 +141,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                 ExtendedFloatingActionButton(
                     onClick = { showAddExpense = true },
                     icon = { Icon(Icons.Default.Add, null) },
-                    text = { Text("Add expense") },
+                    text = { Text(stringResource(R.string.add_expense_save)) },
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary,
                 )
@@ -145,7 +187,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
             group, dashboard.user, onDismiss = { selectedGroup = null }, onReminder = { viewModel.sendReminder(group.id) },
             onInvite = {
                 viewModel.createInvite(group.id) { url ->
-                    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, "Join my ${group.name} group on Owefolk: $url") }, "Invite friends"))
+                    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, context.getString(R.string.invite_text, group.name, url)) }, "Invite friends"))
                 }
             },
             onRepaymentModeChange = { simplify -> viewModel.updateRepaymentMode(group.id, simplify) },

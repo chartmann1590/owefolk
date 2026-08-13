@@ -48,12 +48,14 @@ object AdsManager {
                     ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { error ->
                     error?.let { Telemetry.record(IllegalStateException(it.message), "ad_consent_form") }
-                    if (consentInformation.canRequestAds()) startAds(activity)
                 }
                 if (consentInformation.canRequestAds()) startAds(activity)
             },
             { error ->
                 Telemetry.record(IllegalStateException(error.message), "ad_consent_update")
+                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { formError ->
+                    formError?.let { Telemetry.record(IllegalStateException(it.message), "ad_consent_form_fallback") }
+                }
                 if (consentInformation.canRequestAds()) startAds(activity)
             },
         )

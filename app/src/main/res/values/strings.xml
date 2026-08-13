@@ -1,3 +1,171 @@
 <resources>
     <string name="app_name">Owefolk</string>
+
+    <!-- Auth -->
+    <string name="auth_welcome">Welcome to Owefolk</string>
+    <string name="auth_tagline">Shared tabs, clear friendships.</string>
+    <string name="auth_google">Continue with Google</string>
+    <string name="auth_or">or</string>
+    <string name="auth_email_label">Email address</string>
+    <string name="auth_password_label">Password</string>
+    <string name="auth_create_account">Create account</string>
+    <string name="auth_sign_in">Sign in</string>
+    <string name="auth_terms">By continuing, you agree to keep your groups kind and accurate.</string>
+    <string name="auth_google_failed">Google sign-in failed</string>
+    <string name="auth_email_create_failed">Account creation failed</string>
+    <string name="auth_email_signin_failed">Email sign-in failed</string>
+
+    <!-- Home -->
+    <string name="home_greeting">Hey, %s 👋</string>
+    <string name="home_subtitle">Here\'s where things stand.</string>
+    <string name="home_needs_confirmation">Needs your confirmation</string>
+    <string name="home_pending_count">%d pending</string>
+    <string name="home_awaiting_confirmation">Awaiting confirmation</string>
+    <string name="home_sent_count">%d sent</string>
+    <string name="home_groups">Your groups</string>
+    <string name="home_groups_action">See all</string>
+    <string name="home_activity">Recent activity</string>
+
+    <!-- Balance -->
+    <string name="balance_net">Your net balance</string>
+    <string name="balance_owed">You\'re owed</string>
+    <string name="balance_owe">You owe</string>
+
+    <!-- Settlements -->
+    <string name="settlement_marked_sent">%s marked a payment sent</string>
+    <string name="settlement_not_received">Not received</string>
+    <string name="settlement_confirm">Confirm</string>
+    <string name="settlement_you_sent">You sent %s a payment</string>
+    <string name="settlement_awaiting">Awaiting confirmation • %s</string>
+
+    <!-- Groups -->
+    <string name="groups_title">Groups</string>
+    <string name="groups_subtitle">Shared tabs, without the awkward math.</string>
+    <string name="groups_new">New</string>
+    <string name="groups_members">%d members</string>
+    <string name="groups_people_currency">%d people • %s</string>
+
+    <!-- Group Detail -->
+    <string name="group_detail_youre_owed">You\'re owed</string>
+    <string name="group_detail_you_owe">You owe</string>
+    <string name="group_detail_net_balance">Your net balance</string>
+    <string name="group_detail_settled_up">All settled up</string>
+    <string name="group_detail_cancel_out">Incoming and outgoing repayments cancel out</string>
+    <string name="group_detail_simplified">Simplified repayments</string>
+    <string name="group_detail_direct">Direct balances</string>
+    <string name="group_detail_simplified_desc">Use the fewest transfers across the group</string>
+    <string name="group_detail_direct_desc">Keep debts tied to who originally paid</string>
+    <string name="group_detail_shared_setting">This setting is shared with everyone in the group.</string>
+    <string name="group_detail_who_owes_you">Who owes you</string>
+    <string name="group_detail_person">%d person</string>
+    <string name="group_detail_people">%d people</string>
+    <string name="group_detail_send_reminder">Send a friendly reminder</string>
+    <string name="group_detail_who_you_owe">Who you owe</string>
+    <string name="group_detail_payment">%d payment</string>
+    <string name="group_detail_payments">%d payments</string>
+    <string name="group_detail_waiting_handle">Waiting for %s to add repayment details</string>
+    <string name="group_detail_confirm_text">After you mark a payment sent, the recipient must confirm it before balances change.</string>
+    <string name="group_detail_no_repayments">No repayments are outstanding for you in this group.</string>
+    <string name="group_detail_invite">Invite friends</string>
+    <string name="group_detail_pay_cash">Pay with cash</string>
+    <string name="group_detail_open_provider">Open %s</string>
+    <string name="group_detail_mark_sent">I\'ve sent it</string>
+
+    <!-- Owed/You Owe Cards -->
+    <string name="owed_you">%s owes you</string>
+    <string name="owed_provider_handle">They\'ll see %s%s</string>
+    <string name="you_owe">You owe %s</string>
+    <string name="you_owe_provider_handle">%s%s</string>
+
+    <!-- Activity -->
+    <string name="activity_title">Activity</string>
+    <string name="activity_subtitle">A clear history of every shared tab.</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_signed_in">Signed in securely</string>
+    <string name="profile_getting_paid">Getting paid</string>
+    <string name="profile_repayment_details">How friends should repay you</string>
+    <string name="profile_privacy">Privacy</string>
+    <string name="profile_diagnostics">Privacy-safe diagnostics</string>
+    <string name="profile_diagnostics_desc">Crash and usage collection</string>
+    <string name="profile_privacy_policy">Privacy policy</string>
+    <string name="profile_privacy_policy_desc">How Owefolk protects your data</string>
+    <string name="profile_ad_privacy">Ad privacy choices</string>
+    <string name="profile_ad_privacy_desc">Review advertising consent</string>
+    <string name="profile_sign_out">Sign out</string>
+    <string name="profile_sign_out_desc">Keep your shared ledger in Firebase</string>
+    <string name="profile_delete_account">Delete account</string>
+    <string name="profile_delete_account_desc">Remove your account and personal data</string>
+
+    <!-- Profile Dialogs -->
+    <string name="profile_repayment_dialog_title">Your repayment details</string>
+    <string name="profile_repayment_dialog_save">Save</string>
+    <string name="profile_repayment_dialog_cancel">Cancel</string>
+    <string name="profile_repayment_handle_hint">This is shared with your group members so the right person can repay you.</string>
+    <string name="profile_delete_confirm_title">Delete your account?</string>
+    <string name="profile_delete_confirm_text">Your profile, sign-in, devices, and payment handles will be deleted. Shared ledger entries will remain as \"Deleted member\" so friends keep an accurate history.</string>
+    <string name="profile_delete_confirm">Delete permanently</string>
+    <string name="profile_delete_cancel">Keep account</string>
+
+    <!-- Consent -->
+    <string name="consent_title">Help us improve Owefolk</string>
+    <string name="consent_text">Owefolk can collect anonymous crash reports and usage data to fix bugs and improve the app.</string>
+    <string name="consent_no_personal">No personal data, payment details, or expense amounts are ever collected.</string>
+    <string name="consent_change_anytime">You can change this anytime in Profile &gt; Privacy.</string>
+    <string name="consent_allow">Allow</string>
+    <string name="consent_decline">Decline</string>
+
+    <!-- Create Group -->
+    <string name="create_group_title">Create a group</string>
+    <string name="create_group_name">Group name</string>
+    <string name="create_group_emoji">Emoji</string>
+    <string name="create_group_currency">Currency</string>
+    <string name="create_group_currency_locked">Currency is locked after the first expense.</string>
+    <string name="create_group_create">Create</string>
+    <string name="create_group_cancel">Cancel</string>
+
+    <!-- Add Expense -->
+    <string name="add_expense_title">Add an expense</string>
+    <string name="add_expense_scan_title">Scan a receipt</string>
+    <string name="add_expense_scan_desc">On-device OCR fills the merchant and total</string>
+    <string name="add_expense_camera">Camera</string>
+    <string name="add_expense_photos">Photos</string>
+    <string name="add_expense_what">What was it for?</string>
+    <string name="add_expense_amount">Amount</string>
+    <string name="add_expense_split_with">Split with</string>
+    <string name="add_expense_save">Add expense</string>
+    <string name="add_expense_no_text">No text found. Try again in brighter light.</string>
+    <string name="add_expense_text_found">Text found, but no merchant or total. Enter them below.</string>
+    <string name="add_expense_merchant_found">Merchant found. Check the receipt and enter the total.</string>
+    <string name="add_expense_scanned">Receipt scanned. Review the details before adding it.</string>
+    <string name="add_expense_scan_failed">That receipt could not be read. Try a clearer photo.</string>
+    <string name="add_expense_exact_validation">Exact shares must equal %s.</string>
+    <string name="add_expense_percent_validation">Percentages must total 100%%.</string>
+
+    <!-- Receipt Scanner -->
+    <string name="receipt_scan_completed">Receipt scan completed</string>
+    <string name="receipt_scan_failed">Receipt scan failed</string>
+
+    <!-- Payment -->
+    <string name="payment_open_venmo">Open Venmo</string>
+    <string name="payment_open_cash_app">Open Cash App</string>
+    <string name="payment_open_paypal">Open PayPal.Me</string>
+    <string name="payment_open_zelle">Open Zelle</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel">Owefolk updates</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_net_balance">Net balance %s</string>
+    <string name="a11y_send_reminder">Send reminder to %s</string>
+    <string name="a11y_group_members">Group members: %s</string>
+    <string name="a11y_open_group">Open %s</string>
+
+    <!-- Misc -->
+    <string name="invite_text">Join my %s group on Owefolk: %s</string>
+    <string name="just_now">just now</string>
+    <string name="minutes_ago">%dm</string>
+    <string name="hours_ago">%dh</string>
+    <string name="days_ago">%dd</string>
 </resources>

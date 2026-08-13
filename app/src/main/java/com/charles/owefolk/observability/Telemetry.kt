@@ -13,11 +13,13 @@ object Telemetry {
 
     fun initialize(context: Context) {
         analytics = FirebaseAnalytics.getInstance(context)
+        FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(false)
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)
         setCollectionEnabled(context, isCollectionEnabled(context))
     }
 
     fun isCollectionEnabled(context: Context): Boolean =
-        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(COLLECTION_ENABLED, true)
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(COLLECTION_ENABLED, false)
 
     fun setCollectionEnabled(context: Context, enabled: Boolean) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)

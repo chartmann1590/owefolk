@@ -25,4 +25,15 @@ object ReceiptScanner {
         val image = File.createTempFile("receipt_", ".jpg", directory)
         return FileProvider.getUriForFile(context, "${context.packageName}.files", image)
     }
+
+    fun cleanupOldReceipts(context: Context) {
+        runCatching {
+            val dir = File(context.cacheDir, "receipts")
+            dir.listFiles()?.forEach { file ->
+                if (file.lastModified() < System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
+                    file.delete()
+                }
+            }
+        }
+    }
 }

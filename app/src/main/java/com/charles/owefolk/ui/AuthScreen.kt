@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -34,6 +35,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.charles.owefolk.R
 
 @Composable
 fun AuthScreen() {
@@ -54,8 +56,8 @@ fun AuthScreen() {
                 Icon(Icons.Default.PeopleAlt, null, tint = Color.White, modifier = Modifier.size(48.dp))
             }
             Spacer(Modifier.height(24.dp))
-            Text("Welcome to Owefolk", style = MaterialTheme.typography.headlineLarge, color = Color.White)
-            Text("Shared tabs, clear friendships.", color = Color.White.copy(alpha = .78f))
+            Text(stringResource(R.string.auth_welcome), style = MaterialTheme.typography.headlineLarge, color = Color.White)
+            Text(stringResource(R.string.auth_tagline), color = Color.White.copy(alpha = .78f))
             Spacer(Modifier.height(34.dp))
             Card(shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -63,54 +65,54 @@ fun AuthScreen() {
                         onClick = {
                             scope.launch {
                                 busy = true
-                                message = runCatching { signInWithGoogle(context) }.fold({ null }, { it.message ?: "Google sign-in failed" })
+                                message = runCatching { signInWithGoogle(context) }.fold({ null }, { it.message ?: context.getString(R.string.auth_google_failed) })
                                 busy = false
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp), enabled = !busy,
-                    ) { Text("Continue with Google", fontWeight = FontWeight.SemiBold) }
-                    Row(verticalAlignment = Alignment.CenterVertically) { HorizontalDivider(Modifier.weight(1f)); Text("  or  ", color = MaterialTheme.colorScheme.onSurfaceVariant); HorizontalDivider(Modifier.weight(1f)) }
+                    ) { Text(stringResource(R.string.auth_google), fontWeight = FontWeight.SemiBold) }
+                    Row(verticalAlignment = Alignment.CenterVertically) { HorizontalDivider(Modifier.weight(1f)); Text(stringResource(R.string.auth_or), color = MaterialTheme.colorScheme.onSurfaceVariant); HorizontalDivider(Modifier.weight(1f)) }
                     OutlinedTextField(
                         value = email, onValueChange = { email = it.trim() }, modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Email address") }, leadingIcon = { Icon(Icons.Default.Email, null) },
+                        label = { Text(stringResource(R.string.auth_email_label)) }, leadingIcon = { Icon(Icons.Default.Email, null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), singleLine = true,
                     )
                     OutlinedTextField(
                         value = password, onValueChange = { password = it }, modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Password") }, visualTransformation = PasswordVisualTransformation(),
+                        label = { Text(stringResource(R.string.auth_password_label)) }, visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), singleLine = true,
                     )
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedButton(
                             onClick = {
-                                scope.launch {
-                                    busy = true
-                                    message = runCatching { createAccountWithEmail(email, password) }
-                                        .fold({ null }, { it.message ?: "Account creation failed" })
-                                    busy = false
-                                }
+                            scope.launch {
+                                busy = true
+                                message = runCatching { createAccountWithEmail(email, password) }
+                                    .fold({ null }, { it.message ?: context.getString(R.string.auth_email_create_failed) })
+                                busy = false
+                            }
                             },
                             modifier = Modifier.weight(1f).height(52.dp),
                             enabled = email.contains('@') && password.length >= 8 && !busy,
-                        ) { Text("Create account") }
+                        ) { Text(stringResource(R.string.auth_create_account)) }
                         Button(
                             onClick = {
-                                scope.launch {
-                                    busy = true
-                                    message = runCatching { signInWithEmail(email, password) }
-                                        .fold({ null }, { it.message ?: "Email sign-in failed" })
-                                    busy = false
-                                }
+                            scope.launch {
+                                busy = true
+                                message = runCatching { signInWithEmail(email, password) }
+                                    .fold({ null }, { it.message ?: context.getString(R.string.auth_email_signin_failed) })
+                                busy = false
+                            }
                             },
                             modifier = Modifier.weight(1f).height(52.dp),
                             enabled = email.contains('@') && password.length >= 8 && !busy,
-                        ) { Text("Sign in") }
+                        ) { Text(stringResource(R.string.auth_sign_in)) }
                     }
                     message?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                 }
             }
             Spacer(Modifier.height(18.dp))
-            Text("By continuing, you agree to keep your groups kind and accurate.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.auth_terms), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
     }

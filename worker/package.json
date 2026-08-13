@@ -5,11 +5,14 @@
   "scripts": {
     "check": "tsc --noEmit",
     "deploy": "wrangler deploy",
-    "migrate": "wrangler d1 migrations apply owefolk-prod --remote"
+    "migrate": "wrangler d1 migrations apply owefolk-prod --remote",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "latest",
     "@cloudflare/workers-types": "latest",
     "typescript": "latest",
+    "vitest": "latest",
     "wrangler": "latest"
   },
   "dependencies": {

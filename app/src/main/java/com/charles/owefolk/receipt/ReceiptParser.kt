@@ -10,7 +10,7 @@ data class ReceiptSuggestion(
 )
 
 object ReceiptParser {
-    private val amountPattern = Regex("(?<![\\d.])(?:[$€£]\\s*)?(\\d{1,3}(?:,\\d{3})*|\\d+)\\s*[.,]\\s*(\\d{2})(?!\\d)")
+    private val amountPattern = Regex("(?<![\\d.])(?:[$€£]\\s*)?(\\d{1,3}(?:,\\d{3})*|\\d+)\\s*[.,](\\d{1,2})(?!\\d)")
     private val strongTotal = Regex("(?i)\\b(grand\\s+total|amount\\s+due|balance\\s+due|total\\s+due)\\b")
     private val normalTotal = Regex("(?i)\\btotal\\b")
     private val excludedTotal = Regex("(?i)\\b(subtotal|sub[- ]?total|tax|tip|gratuity|change|cash|tender|savings?)\\b")
