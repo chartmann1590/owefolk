@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -261,6 +262,7 @@ fun ProfileScreen(
     onDeleteAccount: () -> Unit,
     showAdPrivacyOptions: Boolean,
     onAdPrivacyOptions: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
 ) {
     val context = LocalContext.current
     val feedbackRepo = remember { com.charles.owefolk.data.feedback.BugReportRepo(context) }
@@ -301,9 +303,11 @@ fun ProfileScreen(
                 com.charles.owefolk.observability.Telemetry.setCollectionEnabled(context, it)
             }
         }
-        item { SettingsRow(Icons.Default.Shield, stringResource(R.string.profile_privacy_policy), stringResource(R.string.profile_privacy_policy_desc)) { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://chartmann1590.github.io/owefolk/privacy.html"))) } }
+        item { SettingsRow(Icons.Default.Shield, stringResource(R.string.profile_privacy_policy_open), stringResource(R.string.profile_privacy_policy_open_desc), onClick = onOpenPrivacyPolicy) }
         if (showAdPrivacyOptions) item { SettingsRow(Icons.Default.PrivacyTip, stringResource(R.string.profile_ad_privacy), stringResource(R.string.profile_ad_privacy_desc), onClick = onAdPrivacyOptions) }
         item { com.charles.owefolk.ui.feedback.SupportFeedbackSection(feedbackRepo) }
+        item { SectionTitle(stringResource(R.string.profile_about)) }
+        item { SettingsRow(Icons.Default.Language, stringResource(R.string.profile_website), stringResource(R.string.profile_website_desc)) { context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://chartmann1590.github.io/owefolk/"))) } }
         item { SettingsRow(Icons.AutoMirrored.Filled.Logout, stringResource(R.string.profile_sign_out), stringResource(R.string.profile_sign_out_desc), onClick = onSignOut) }
         item { SettingsRow(Icons.Default.DeleteOutline, stringResource(R.string.profile_delete_account), stringResource(R.string.profile_delete_account_desc), destructive = true, onClick = { confirmDeletion = true }) }
     }
@@ -357,6 +361,47 @@ fun ProfileScreen(
         confirmButton = { TextButton(onClick = { confirmDeletion = false; onDeleteAccount() }) { Text(stringResource(R.string.profile_delete_confirm), color = MaterialTheme.colorScheme.error) } },
         dismissButton = { TextButton(onClick = { confirmDeletion = false }) { Text(stringResource(R.string.profile_delete_cancel)) } },
     )
+}
+
+@Composable
+fun PrivacyPolicyScreen(onBack: () -> Unit) {
+    LazyColumn(
+        Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 12.dp, 20.dp, 40.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.privacy_back)) }
+                Text(stringResource(R.string.privacy_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            }
+        }
+        item { Text(stringResource(R.string.privacy_updated), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        item { Text(stringResource(R.string.privacy_intro), style = MaterialTheme.typography.bodyLarge) }
+        item { PrivacySection(stringResource(R.string.privacy_data_title), stringResource(R.string.privacy_data_1), stringResource(R.string.privacy_data_2)) }
+        item { PrivacySection(stringResource(R.string.privacy_firebase_title), stringResource(R.string.privacy_firebase_1), stringResource(R.string.privacy_firebase_2)) }
+        item { PrivacySection(stringResource(R.string.privacy_receipts_title), stringResource(R.string.privacy_receipts_1)) }
+        item { PrivacySection(stringResource(R.string.privacy_ads_title), stringResource(R.string.privacy_ads_1)) }
+        item { PrivacySection(stringResource(R.string.privacy_cloudflare_title), stringResource(R.string.privacy_cloudflare_1)) }
+        item { PrivacySection(stringResource(R.string.privacy_external_title), stringResource(R.string.privacy_external_1)) }
+        item { PrivacySection(stringResource(R.string.privacy_deletion_title), stringResource(R.string.privacy_deletion_1)) }
+        item {
+            PrivacySection(
+                stringResource(R.string.privacy_choices_title),
+                stringResource(R.string.privacy_choices_1),
+                stringResource(R.string.privacy_choices_2),
+                stringResource(R.string.privacy_choices_3),
+            )
+        }
+        item { PrivacySection(stringResource(R.string.privacy_contact_title), stringResource(R.string.privacy_contact_1)) }
+    }
+}
+
+@Composable
+private fun PrivacySection(title: String, vararg paragraphs: String) {
+    Column(Modifier.fillMaxWidth().padding(top = 18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        paragraphs.forEach { Text(it, style = MaterialTheme.typography.bodyMedium) }
+    }
 }
 
 @Composable

@@ -34,6 +34,8 @@ private enum class RootDestination(val route: String, val label: String, val ico
     PROFILE("profile", "Profile", Icons.Default.Person),
 }
 
+private const val PRIVACY_ROUTE = "privacy"
+
 @Composable
 fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(FirebaseOwefolkRepository()))) {
     var signedIn by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
@@ -131,21 +133,23 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             Column {
-                AdMobBanner()
-                NavigationBar(tonalElevation = 0.dp) {
-                    RootDestination.entries.forEach { destination ->
-                        NavigationBarItem(
-                            selected = currentRoute == destination.route,
-                            onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(destination.icon, destination.label) },
-                            label = { Text(destination.label) },
-                        )
+                if (currentRoute in RootDestination.entries.map { it.route }) AdMobBanner()
+                if (currentRoute in RootDestination.entries.map { it.route }) {
+                    NavigationBar(tonalElevation = 0.dp) {
+                        RootDestination.entries.forEach { destination ->
+                            NavigationBarItem(
+                                selected = currentRoute == destination.route,
+                                onClick = {
+                                    navController.navigate(destination.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { Icon(destination.icon, destination.label) },
+                                label = { Text(destination.label) },
+                            )
+                        }
                     }
                 }
             }
@@ -177,7 +181,11 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                     onSignOut = { FirebaseAuth.getInstance().signOut() },
                     onDeleteAccount = viewModel::deleteAccount,
                     showAdPrivacyOptions = privacyOptionsRequired,
-                    onAdPrivacyOptions = { (context as? Activity)?.let(AdsManager::showPrivacyOptions) })
+                    onAdPrivacyOptions = { (context as? Activity)?.let(AdsManager::showPrivacyOptions) },
+                    onOpenPrivacyPolicy = { navController.navigate(PRIVACY_ROUTE) })
+            }
+            composable(PRIVACY_ROUTE) {
+                PrivacyPolicyScreen(onBack = { navController.popBackStack() })
             }
         }
     }
