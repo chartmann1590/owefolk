@@ -87,6 +87,7 @@ data class Dashboard(
     val groups: List<Group>,
     val activities: List<ActivityItem>,
     val settlements: List<Settlement>,
+    val needsOnboarding: Boolean = false,
 ) {
     val netMinorUnits: Long get() = groups.sumOf(Group::netMinorUnits)
     val owedToYouMinorUnits: Long get() = groups.sumOf { maxOf(it.netMinorUnits, 0) }

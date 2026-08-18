@@ -15,7 +15,7 @@ service cloud.firestore {
         && validText(request.resource.data.initials, 4)
         && request.resource.data.preferredProvider in ['VENMO', 'CASH_APP', 'PAYPAL', 'ZELLE', 'OTHER', 'CASH'];
       allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'preferredProvider', 'paymentHandle', 'analyticsEnabled', 'digestEnabled', 'quietHours'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'initials', 'color', 'preferredProvider', 'paymentHandle', 'analyticsEnabled', 'digestEnabled', 'quietHours', 'onboarded'])
         && request.resource.data.preferredProvider in ['VENMO', 'CASH_APP', 'PAYPAL', 'ZELLE', 'OTHER', 'CASH']
         && (!('paymentHandle' in request.resource.data) || (request.resource.data.paymentHandle is string && request.resource.data.paymentHandle.size() <= 160));
       allow delete: if isSelf(uid);

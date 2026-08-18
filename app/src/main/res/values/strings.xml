@@ -108,6 +108,29 @@
     <string name="profile_delete_confirm">Delete permanently</string>
     <string name="profile_delete_cancel">Keep account</string>
 
+    <!-- Onboarding -->
+    <string name="onboard_title">Let\'s set you up</string>
+    <string name="onboard_subtitle">Two quick things, then you\'re ready to split.</string>
+    <string name="onboard_step_label">%1$d of %2$d</string>
+    <string name="onboard_name_title">What should friends call you?</string>
+    <string name="onboard_name_hint">Your name</string>
+    <string name="onboard_name_help">Friends see this in groups and balances.</string>
+    <string name="onboard_payment_title">How should friends repay you?</string>
+    <string name="onboard_payment_help">You can change this anytime in Profile.</string>
+    <string name="onboard_group_title">Start your first group</string>
+    <string name="onboard_group_help">Create one, or join with an invite link.</string>
+    <string name="onboard_group_create">Create a group</string>
+    <string name="onboard_group_join">Join with an invite link</string>
+    <string name="onboard_group_join_hint">Paste invite link</string>
+    <string name="onboard_group_join_button">Join</string>
+    <string name="onboard_group_created">Created “%1$s”</string>
+    <string name="onboard_group_joined">Joined a friend\'s group</string>
+    <string name="onboard_group_skip">Skip for now</string>
+    <string name="onboard_join_invalid">That invite link doesn\'t look right.</string>
+    <string name="onboard_back">Back</string>
+    <string name="onboard_continue">Continue</string>
+    <string name="onboard_finish">Finish</string>
+
     <!-- Consent -->
     <string name="consent_title">Help us improve Owefolk</string>
     <string name="consent_text">Owefolk can collect anonymous crash reports and usage data to fix bugs and improve the app.</string>

@@ -160,6 +160,7 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
     implementation(libs.google.mobile.ads)
     implementation(libs.google.ump)
+    implementation(libs.google.play.services.auth)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)

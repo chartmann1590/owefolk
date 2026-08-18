@@ -17,5 +17,7 @@ interface OwefolkRepository {
     suspend fun sendReminder(groupId: String)
     suspend fun updateRepaymentMode(groupId: String, simplifyDebts: Boolean)
     suspend fun updatePaymentPreference(provider: PaymentProvider, paymentHandle: String?)
+    suspend fun saveProfileName(name: String, color: Long)
+    suspend fun completeOnboarding()
     suspend fun deleteAccount()
 }

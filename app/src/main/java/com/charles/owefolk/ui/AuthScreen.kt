@@ -1,6 +1,9 @@
 package com.charles.owefolk.ui
 
+import android.app.Activity
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -25,8 +28,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.charles.owefolk.ui.theme.Coral
 import com.charles.owefolk.ui.theme.Indigo
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
@@ -46,6 +52,35 @@ fun AuthScreen() {
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
+    val googleLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        scope.launch {
+            val signInAccount = if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                runCatching { GoogleSignIn.getSignedInAccountFromIntent(result.data) }.getOrNull()
+            } else null
+            if (signInAccount != null && signInAccount.isSuccessful) {
+                val idToken = signInAccount.result?.idToken
+                if (idToken == null) {
+                    busy = false
+                    message = context.getString(R.string.auth_google_failed)
+                } else {
+                    try {
+                        exchangeGoogleIdToken(idToken)
+                        busy = false
+                    } catch (e: Exception) {
+                        busy = false
+                        message = e.message ?: context.getString(R.string.auth_google_failed)
+                    }
+                }
+            } else if (signInAccount == null) {
+                busy = false
+                message = null
+            } else {
+                busy = false
+                message = signInAccount.exception?.message ?: context.getString(R.string.auth_google_failed)
+            }
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.background)))) {
         Column(
             Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 54.dp),
@@ -63,10 +98,24 @@ fun AuthScreen() {
                 Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Button(
                         onClick = {
+                            busy = true
+                            message = null
                             scope.launch {
-                                busy = true
-                                message = runCatching { signInWithGoogle(context) }.fold({ null }, { it.message ?: context.getString(R.string.auth_google_failed) })
-                                busy = false
+                                try {
+                                    signInWithGoogle(context)
+                                    busy = false
+                                } catch (_: GetCredentialCancellationException) {
+                                    busy = false
+                                } catch (_: Exception) {
+                                    val clientId = context.getString(
+                                        context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
+                                    )
+                                    val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                        .requestEmail()
+                                        .requestIdToken(clientId)
+                                        .build()
+                                    googleLauncher.launch(GoogleSignIn.getClient(context, options).signInIntent)
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp), enabled = !busy,
@@ -130,7 +179,11 @@ private suspend fun signInWithGoogle(context: Context) {
     val credential = result.credential
     require(credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) { "Unexpected credential" }
     val google = GoogleIdTokenCredential.createFrom(credential.data)
-    val authResult = FirebaseAuth.getInstance().signInWithCredential(GoogleAuthProvider.getCredential(google.idToken, null)).await()
+    exchangeGoogleIdToken(google.idToken)
+}
+
+private suspend fun exchangeGoogleIdToken(idToken: String) {
+    val authResult = FirebaseAuth.getInstance().signInWithCredential(GoogleAuthProvider.getCredential(idToken, null)).await()
     createOrUpdateProfile(requireNotNull(authResult.user))
 }
 
@@ -145,14 +198,10 @@ private suspend fun createAccountWithEmail(email: String, password: String) {
 }
 
 private suspend fun createOrUpdateProfile(user: com.google.firebase.auth.FirebaseUser) {
+    val profile = FirebaseFirestore.getInstance().collection("users").document(user.uid)
+    if (profile.get().await().exists()) return
     val name = user.displayName ?: "Friend"
     val initials = name.split(' ').filter(String::isNotBlank).take(2).joinToString("") { it.first().uppercase() }.ifBlank { "OF" }
-    val profile = FirebaseFirestore.getInstance().collection("users").document(user.uid)
-    if (profile.get().await().exists()) {
-        profile.set(mapOf("name" to name, "initials" to initials, "color" to 0xFF5B4BD8),
-            com.google.firebase.firestore.SetOptions.merge()).await()
-    } else {
-        profile.set(mapOf("name" to name, "initials" to initials, "email" to user.email, "color" to 0xFF5B4BD8,
-            "preferredProvider" to "VENMO", "createdAt" to FieldValue.serverTimestamp())).await()
-    }
+    profile.set(mapOf("name" to name, "initials" to initials, "email" to user.email, "color" to 0xFF5B4BD8,
+        "preferredProvider" to "VENMO", "createdAt" to FieldValue.serverTimestamp())).await()
 }

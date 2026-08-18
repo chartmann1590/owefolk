@@ -2,6 +2,7 @@
 .gradle/
 .idea/
 local.properties
+secrets/
 **/build/
 captures/
 .externalNativeBuild/
@@ -24,3 +25,6 @@ media/screenshots/google-chooser.png
 media/screenshots/home-empty.png
 media/screenshots/home.png
 media/screenshots/payment-options.png
+
+screenshots/
+.kotlin/

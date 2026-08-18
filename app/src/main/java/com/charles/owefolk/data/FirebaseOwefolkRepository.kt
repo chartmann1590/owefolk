@@ -7,6 +7,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.SetOptions
 import com.charles.owefolk.observability.Telemetry
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -234,16 +235,56 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         }
         val uid = uid()
         val links = db.collection("userGroups").document(uid).collection("groups").get().await()
-        val fields = mapOf<String, Any>(
-            "preferredProvider" to provider.name,
-            "paymentHandle" to (handle ?: FieldValue.delete()),
-        )
+        val userRef = db.collection("users").document(uid)
+        val existing = runCatching { userRef.get().await() }.getOrNull()
+        val base = mutableMapOf<String, Any>("preferredProvider" to provider.name)
+        base["paymentHandle"] = handle ?: FieldValue.delete()
+        if (existing?.exists() != true) {
+            val fallback = auth.currentUser?.displayName ?: "Friend"
+            base["name"] = fallback
+            base["initials"] = fallback.split(' ').filter(String::isNotBlank).take(2)
+                .joinToString("") { it.first().uppercase() }.ifBlank { "OF" }
+            base["color"] = 0xFF5B4BD8
+        }
         val batch = db.batch()
-        batch.update(db.collection("users").document(uid), fields)
+        batch.set(userRef, base, SetOptions.merge())
+        val memberFields = mapOf<String, Any>("preferredProvider" to provider.name, "paymentHandle" to (handle ?: FieldValue.delete()))
         links.documents.forEach { link ->
-            batch.update(db.collection("groups").document(link.id).collection("members").document(uid), fields)
+            batch.update(db.collection("groups").document(link.id).collection("members").document(uid), memberFields)
         }
         batch.commit().await()
+    }
+
+    override suspend fun saveProfileName(name: String, color: Long) {
+        val uid = uid()
+        val nameClean = name.trim()
+        require(nameClean.isNotEmpty()) { "Add a name friends will recognize" }
+        val initials = nameClean.split(' ').filter(String::isNotBlank).take(2)
+            .joinToString("") { it.first().uppercase() }.ifBlank { "OF" }
+        val userRef = db.collection("users").document(uid)
+        val existing = runCatching { userRef.get().await() }.getOrNull()
+        userRef.set(mapOf<String, Any>(
+            "name" to nameClean, "initials" to initials, "color" to color,
+            "preferredProvider" to (existing?.getString("preferredProvider") ?: PaymentProvider.VENMO.name),
+        ), SetOptions.merge()).await()
+    }
+
+    override suspend fun completeOnboarding() {
+        val uid = uid()
+        val userRef = db.collection("users").document(uid)
+        val existing = runCatching { userRef.get().await() }.getOrNull()
+        val fields = mutableMapOf<String, Any>(
+            "preferredProvider" to (existing?.getString("preferredProvider") ?: PaymentProvider.VENMO.name),
+            "onboarded" to true,
+        )
+        if (existing?.exists() != true) {
+            val fallback = auth.currentUser?.displayName ?: "Friend"
+            fields["name"] = fallback
+            fields["initials"] = fallback.split(' ').filter(String::isNotBlank).take(2)
+                .joinToString("") { it.first().uppercase() }.ifBlank { "OF" }
+            fields["color"] = 0xFF5B4BD8
+        }
+        userRef.set(fields, SetOptions.merge()).await()
     }
 
     override suspend fun deleteAccount() {
@@ -264,6 +305,7 @@ class FirebaseOwefolkRepository : OwefolkRepository {
     private suspend fun loadDashboard(uid: String, groupIds: List<String>): Dashboard {
         val userDoc = db.collection("users").document(uid).get().await()
         val user = userDoc.toPerson(uid)
+        val needsOnboarding = userDoc.getBoolean("onboarded") != true
         val groupResults = supervisorScope {
             groupIds.map { groupId ->
                 async { runCatching { loadGroup(uid, groupId, user) }.getOrNull() }
@@ -272,7 +314,7 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         val groups = groupResults.mapNotNull { it?.first }.toMutableList()
         val allActivities = groupResults.flatMap { it?.second.orEmpty() }.toMutableList()
         val allSettlements = groupResults.flatMap { it?.third.orEmpty() }.toMutableList()
-        return Dashboard(user, groups.sortedBy { it.name }, allActivities.sortedByDescending { it.timestamp }.take(30), allSettlements)
+        return Dashboard(user, groups.sortedBy { it.name }, allActivities.sortedByDescending { it.timestamp }.take(30), allSettlements, needsOnboarding)
     }
 
     private suspend fun loadGroup(uid: String, groupId: String, currentUser: Person): Triple<Group?, List<ActivityItem>, List<Settlement>> = coroutineScope {

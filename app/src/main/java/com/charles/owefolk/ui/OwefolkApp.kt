@@ -101,6 +101,20 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
         return
     }
 
+    if (dashboard.needsOnboarding) {
+        OnboardingScreen(
+            busy = state.busy,
+            message = state.message,
+            onClearMessage = viewModel::clearMessage,
+            onSaveNameDone = { name, color -> viewModel.saveProfileName(name, color) },
+            onPaymentDone = viewModel::updatePaymentPreference,
+            onCreateGroup = viewModel::createGroup,
+            onAcceptInvite = viewModel::acceptInvite,
+            onFinished = { viewModel.completeOnboarding() },
+        )
+        return
+    }
+
     LaunchedEffect(dashboard.user.id) {
         val invitePreferences = context.getSharedPreferences("invites", android.content.Context.MODE_PRIVATE)
         val token = invitePreferences.getString("token", null)

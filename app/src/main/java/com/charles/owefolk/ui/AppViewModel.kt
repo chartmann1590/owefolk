@@ -47,6 +47,10 @@ class AppViewModel(private val repository: OwefolkRepository) : ViewModel() {
     fun updatePaymentPreference(provider: com.charles.owefolk.domain.PaymentProvider, paymentHandle: String?) =
         action("Payment details updated", event = "payment_preference_updated",
             parameters = mapOf("provider" to provider.name.lowercase())) { repository.updatePaymentPreference(provider, paymentHandle) }
+    fun saveProfileName(name: String, color: Long, onDone: () -> Unit = {}) =
+        action("Name saved", onDone, "profile_name_saved") { repository.saveProfileName(name, color) }
+    fun completeOnboarding(onDone: () -> Unit = {}) =
+        action("Welcome to Owefolk", onDone, "onboarding_completed") { repository.completeOnboarding() }
     fun clearMessage() { message.value = null }
     fun deleteAccount() = action("Account deleted", event = "account_deleted") { repository.deleteAccount() }
 
