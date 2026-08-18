@@ -1,1 +1,34 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Join an Owefolk group</title><link rel="stylesheet" href="styles.css"></head><body><header><nav><a class="brand" href="./"><span class="mark">O</span> Owefolk</a></nav></header><main class="invite"><section class="panel"><div class="emoji">👋</div><h1 style="font-size:3rem">You’re invited.</h1><p>Open this invite in Owefolk to join the group securely. The invite expires after seven days and can be accepted once.</p><a id="open" class="button" href="https://github.com/chartmann1590/owefolk/releases/latest">Get Owefolk</a><p><small>This page is hosted entirely on GitHub Pages.</small></p></section></main><script>const q=new URLSearchParams(location.search);const token=q.get('token'),group=q.get('group');const open=document.querySelector('#open');if(token&&group){open.textContent='Open in Owefolk';open.href=`owefolk://invite?token=${encodeURIComponent(token)}&group=${encodeURIComponent(group)}`}</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Join an Owefolk group invite. Open this invite in the Owefolk Android app to securely share a shared-expenses group.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#5b4bd8">
+  <link rel="icon" href="media/icon.png" type="image/png">
+  <title>Join an Owefolk group</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header"><nav class="container"><a class="brand" href="./"><span class="mark">O</span><span>Owefolk</span></a></nav></header>
+  <main class="invite">
+    <section class="panel">
+      <div class="emoji">👋</div>
+      <h1>You're invited.</h1>
+      <p>Open this invite in Owefolk to join the group securely. The invite expires after seven days and can be accepted once.</p>
+      <a id="open" class="btn btn-primary btn-lg" href="https://play.google.com/store/apps/details?id=com.charles.owefolk" rel="noopener">Get Owefolk</a>
+      <p class="note" style="margin-top:24px"><small>This page is hosted entirely on GitHub Pages.</small></p>
+    </section>
+  </main>
+  <script>
+    const q = new URLSearchParams(location.search);
+    const token = q.get('token'), group = q.get('group');
+    const open = document.querySelector('#open');
+    if (token && group) {
+      open.textContent = 'Open in Owefolk';
+      open.href = `owefolk://invite?token=${encodeURIComponent(token)}&group=${encodeURIComponent(group)}`;
+    }
+  </script>
+</body>
+</html>

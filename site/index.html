@@ -3,76 +3,308 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Owefolk — Shared tabs, clear friendships. Split expenses &amp; settle up.</title>
+
+  <meta name="description" content="Owefolk is a private expense splitter for Android. Know what you owe, scan receipts on-device, split bills fairly, and repay friends using the payment apps they already use — Venmo, Cash App, PayPal, Zelle or a custom link.">
+  <meta name="keywords" content="split expenses, split bill app, owe money app, receipt scanner, IOU app, settle up, Venmo, Cash App, PayPal, expense tracker android, group expenses, shared finances">
+  <meta name="author" content="Hartmann Studios">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#5b4bd8">
-  <title>Owefolk - shared tabs, clear friendships</title>
-  <meta name="description" content="Know what you owe, scan receipts, split expenses fairly, and pay friends back with the payment apps they prefer.">
+  <link rel="canonical" href="https://chartmann1590.github.io/owefolk/">
+  <link rel="icon" href="media/icon.png" type="image/png">
+  <link rel="apple-touch-icon" href="media/apple-touch-icon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Owefolk">
+  <meta property="og:title" content="Owefolk — Shared tabs, clear friendships">
+  <meta property="og:description" content="Split expenses fairly, scan receipts privately, and repay friends with the payment apps they prefer. Free on Android.">
+  <meta property="og:url" content="https://chartmann1590.github.io/owefolk/">
+  <meta property="og:image" content="https://chartmann1590.github.io/owefolk/media/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Owefolk expense splitting app for Android">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Owefolk — Shared tabs, clear friendships">
+  <meta name="twitter:description" content="Split expenses fairly, scan receipts privately, and repay friends with the payment apps they prefer. Free on Android.">
+  <meta name="twitter:image" content="https://chartmann1590.github.io/owefolk/media/og-image.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://chartmann1590.github.io/owefolk/#website",
+        "url": "https://chartmann1590.github.io/owefolk/",
+        "name": "Owefolk",
+        "description": "Shared tabs, clear friendships. Split expenses and settle up easily on Android.",
+        "inLanguage": "en-US",
+        "publisher": { "@id": "https://github.com/chartmann1590/owefolk#publisher" }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "Owefolk",
+        "operatingSystem": "Android",
+        "applicationCategory": "FinanceApplication",
+        "applicationSubCategory": "Expense Splitter",
+        "downloadUrl": "https://play.google.com/store/apps/details?id=com.charles.owefolk",
+        "url": "https://chartmann1590.github.io/owefolk/",
+        "description": "Split expenses fairly, scan receipts privately on-device, and repay friends using the payment apps they prefer — Venmo, Cash App, PayPal, Zelle or a custom link.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": [
+          "On-device receipt scanning",
+          "Equal, exact, or percentage splits",
+          "Group balances with settlement suggestions",
+          "Preferred payment method sharing",
+          "Open Venmo, Cash App, PayPal, and more"
+        ]
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://github.com/chartmann1590/owefolk#publisher",
+        "name": "Hartmann Studios",
+        "url": "https://github.com/chartmann1590/owefolk",
+        "sameAs": ["https://github.com/chartmann1590/owefolk"]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
-  <header>
-    <nav>
-      <a class="brand" href="./"><span class="mark">O</span> Owefolk</a>
-      <div class="navlinks"><a href="#how-it-works">How it works</a><a href="#real-app">Real app</a><a href="privacy.html">Privacy</a><a href="https://github.com/chartmann1590/owefolk/releases/latest">Download</a></div>
+  <header class="site-header">
+    <nav class="container">
+      <a class="brand" href="./"><span class="mark">O</span><span>Owefolk</span></a>
+      <div class="navlinks">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#gallery">Screenshots</a>
+        <a href="#demo">Video</a>
+        <a href="privacy.html">Privacy</a>
+        <a class="btn btn-dark btn-sm" href="https://play.google.com/store/apps/details?id=com.charles.owefolk" rel="noopener">Get the app</a>
+      </div>
+      <a class="nav-cta" href="https://github.com/chartmann1590/owefolk" rel="noopener" aria-label="Owefolk on GitHub">
+        <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span>Star</span>
+      </a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
-      <div>
-        <div class="eyebrow">Made for friends, not spreadsheets</div>
-        <h1>Know what you owe.<br><span class="gradient">Keep friendship easy.</span></h1>
-        <p class="lead">Owefolk keeps dinners, trips, rent, and group plans fair. Everyone sees their own balance, who it belongs to, and how that friend prefers to be paid back.</p>
-        <div class="actions"><a class="button" href="https://github.com/chartmann1590/owefolk/releases/latest">Get Owefolk for Android</a><a class="text-link" href="#demo">Watch the tour &darr;</a></div>
-        <p class="trust">Clear shared balances &middot; private receipt scanning &middot; no custody of funds</p>
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="badge"><span class="pill">Free &middot; Open source</span></div>
+          <h1>Know what you owe.<br><span class="gradient">Keep friendship easy.</span></h1>
+          <p class="lead">Owefolk keeps dinners, trips, rent, and group plans fair. Everyone sees their own balance, who it belongs to, and how that friend prefers to be paid back.</p>
+          <div class="actions">
+            <a class="btn btn-primary btn-lg" href="https://play.google.com/store/apps/details?id=com.charles.owefolk" rel="noopener">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8 13.7 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1zM14.9 13.2l2.6 2.6-10.5 6-7.4-7.4 1.3-1.3L14.9 13.2zm4.6-1.8c.7.7.7 1.9 0 2.6l-2 2-2.7-2.7 2.7-2.7 2 1.8-1-.2 1 1.8zM4.7 1C5.1.8 5.6.9 6 .1 7.5 1.4 12.3 4.6 14 6.2l-2 2L4.6 1l.1 0z" transform="translate(0 0)"/></svg>
+              Get it on Google Play
+            </a>
+            <a class="btn btn-outline btn-lg" href="#demo">Watch the tour &darr;</a>
+          </div>
+          <ul class="trust">
+            <li>Clear shared balances</li>
+            <li>Private on-device receipt scanning</li>
+            <li>No custody of your funds</li>
+          </ul>
+        </div>
+        <div class="hero-visual">
+          <div class="phone-frame">
+            <img src="media/screenshots/home-ledger.png" alt="Owefolk home ledger showing balances across groups" loading="eager" width="390" height="842">
+          </div>
+          <div class="float-card fc-top">
+            <span class="fc-icon">&#128176;</span>
+            <div><strong>Settled up</strong><small>Apartment &middot; all square</small></div>
+          </div>
+          <div class="float-card fc-bottom">
+            <span class="fc-icon">&#128176;</span>
+            <div><strong>You owe Maya</strong><small>$12.40 &middot; Venmo</small></div>
+          </div>
+        </div>
       </div>
-      <div class="hero-shot"><img src="media/screenshots/what-you-owe.png" alt="Owefolk showing a member what they owe across two groups"></div>
+      <div class="hero-glows" aria-hidden="true"></div>
     </section>
 
-    <section class="features" id="how-it-works" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
-      <article class="feature"><span>&#128247;</span><h2>Scan the receipt</h2><p>Take a photo and let private on-device recognition suggest the merchant and total for you to review.</p></article>
-      <article class="feature"><span>&#129534;</span><h2>Split it fairly</h2><p>Choose equal, exact, or percentage shares. Owefolk keeps every cent accounted for.</p></article>
-      <article class="feature"><span>&#128101;</span><h2>See who owes whom</h2><p>Use direct balances or simplify the group into fewer repayments whenever everyone prefers.</p></article>
-      <article class="feature"><span>&#129309;</span><h2>Pay their way</h2><p>See your friend's preferred provider and handle, then open the right payment destination.</p></article>
-    </section>
-
-    <section class="demo" id="real-app">
-      <div class="section-copy">
-        <div class="eyebrow">The view from both sides</div>
-        <h2>No mystery balances.<br>No awkward follow-up.</h2>
-        <p>The person paying sees exactly who they owe and how to repay them. The person who covered the bill sees who owes them and which payment details are being shared.</p>
-      </div>
-      <div class="shot-grid">
-        <figure><img src="media/screenshots/what-you-owe.png" alt="A signed-in member's current debts"><figcaption>See your full picture</figcaption></figure>
-        <figure><img src="media/screenshots/open-venmo.png" alt="A debtor sees the recipient's Venmo handle and Open Venmo action"><figcaption>Open their preferred method</figcaption></figure>
-        <figure><img src="media/screenshots/payment-sent-step.png" alt="The payer confirms only after sending the payment"><figcaption>Confirm only after paying</figcaption></figure>
-        <figure><img src="media/screenshots/who-owes-you.png" alt="The recipient sees who owes them"><figcaption>Know who owes you</figcaption></figure>
-        <figure><img src="media/screenshots/receipt-scan.png" alt="Receipt text recognized privately on the phone"><figcaption>Scan receipts on-device</figcaption></figure>
-        <figure><img src="media/screenshots/add-expense.png" alt="Reviewing and splitting an expense"><figcaption>Review every split</figcaption></figure>
+    <section class="logos">
+      <div class="container logos-row">
+        <span>Works with the money apps you already use</span>
+        <strong>Venmo</strong><strong>Cash App</strong><strong>PayPal</strong><strong>Zelle</strong><strong>Any link</strong>
       </div>
     </section>
 
-    <section class="demo">
-      <div class="section-copy">
-        <div class="eyebrow">A payment trail friends can trust</div>
-        <h2>Opening an app is not the same as paying.</h2>
-        <p>Owefolk hands you off to Venmo, Cash App, PayPal, Zelle, or a custom link. Your balance stays unchanged until you say the payment was sent and your friend confirms receiving it.</p>
+    <section class="features" id="features">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">Features</div>
+          <h2>Everything a <span class="gradient">fair split</span> needs</h2>
+          <p>Settling up should be a one-tap goodbye, not a spreadsheet argument.</p>
+        </div>
+        <div class="features-grid">
+          <article class="card feature">
+            <span class="f-emoji">&#128247;</span>
+            <h3>Scan the receipt</h3>
+            <p>Take a photo and let private on-device recognition suggest the merchant and total for you to review.</p>
+          </article>
+          <article class="card feature">
+            <span class="f-emoji">&#129534;</span>
+            <h3>Split it fairly</h3>
+            <p>Choose equal, exact, or percentage shares. Owefolk keeps every cent accounted for.</p>
+          </article>
+          <article class="card feature">
+            <span class="f-emoji">&#128101;</span>
+            <h3>See who owes whom</h3>
+            <p>Direct balances or simplified repayments — the group sees where it stands at a glance.</p>
+          </article>
+          <article class="card feature">
+            <span class="f-emoji">&#129309;</span>
+            <h3>Pay their way</h3>
+            <p>See your friend's preferred provider and handle, then open the right payment destination.</p>
+          </article>
+          <article class="card feature">
+            <span class="f-emoji">&#128203;</span>
+            <h3>Shared ledger</h3>
+            <p>A timestamped history every member can read, so "I paid that" never needs to be a fight.</p>
+          </article>
+          <article class="card feature">
+            <span class="f-emoji">&#128274;</span>
+            <h3>Privacy first</h3>
+            <p>Receipts never leave your phone. Diagnostics can be switched off from your profile.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="how-it-works">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">How it works</div>
+          <h2>Three steps, <span class="gradient">zero awkwardness</span></h2>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">01</span>
+            <img src="media/screenshots/add-expense.png" alt="Adding and splitting an expense in Owefolk" loading="lazy" width="300" height="650">
+            <h3>Add an expense</h3>
+            <p>Snap the receipt or type the amount. Pick equal, exact, or percentage shares.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">02</span>
+            <img src="media/screenshots/what-you-owe.png" alt="Seeing what you currently owe across groups" loading="lazy" width="300" height="650">
+            <h3>See where you stand</h3>
+            <p>Everyone views their own balance and who it belongs to — no surprises.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">03</span>
+            <img src="media/screenshots/open-venmo.png" alt="Opening the recipient's preferred payment app" loading="lazy" width="300" height="650">
+            <h3>Settle up their way</h3>
+            <p>Tap through to Venmo, Cash App, PayPal, Zelle or a custom link, then mark it sent.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="banner">
+      <div class="container banner-grid">
+        <img src="media/feature-graphic.png" alt="Owefolk feature graphic — shared tabs, clear friendships" loading="lazy" width="1024" height="500">
+        <div>
+          <div class="eyebrow">Shared tabs, clear friendships</div>
+          <h2>Built for the people you actually split with.</h2>
+          <p>Group trips, apartment bills, dinner runs, and recurring plans all live in one calm ledger that every member can read — with balances that settle into the apps they already use.</p>
+          <a class="btn btn-primary" href="https://github.com/chartmann1590/owefolk" rel="noopener">Browse the code &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery" id="gallery">
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">Take a look</div>
+          <h2>See it from <span class="gradient">both sides</span></h2>
+          <p>Real flows from the app — the payer's view and the recipient's view, from scan to settlement.</p>
+        </div>
+        <div class="shot-grid">
+          <figure class="card shot"><img src="media/screenshots/what-you-owe.png" alt="A signed-in member's current debts" loading="lazy" width="300" height="650"><figcaption>Your full picture</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/who-owes-you.png" alt="Who owes you across groups" loading="lazy" width="300" height="650"><figcaption>Who owes you</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/group-detail.png" alt="Group detail with members and balances" loading="lazy" width="300" height="650"><figcaption>Group ledger</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/payment-options-full.png" alt="Choosing which payment app to open" loading="lazy" width="300" height="650"><figcaption>Pay their way</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/payment-sent-step.png" alt="Confirming that a payment was sent" loading="lazy" width="300" height="650"><figcaption>Confirm after paying</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/settlement-pending.png" alt="A settlement reported and pending" loading="lazy" width="300" height="650"><figcaption>Pending settlement</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/receipt-scan.png" alt="Receipt recognition running privately on the phone" loading="lazy" width="300" height="650"><figcaption>Scan on-device</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/profile.png" alt="Profile screen with payment preferences" loading="lazy" width="300" height="650"><figcaption>Your preferences</figcaption></figure>
+          <figure class="card shot"><img src="media/screenshots/groups.png" alt="All your groups in one place" loading="lazy" width="300" height="650"><figcaption>All your groups</figcaption></figure>
+        </div>
       </div>
     </section>
 
     <section class="video-section" id="demo">
-      <div class="eyebrow">A quick guided tour</div>
-      <h2>See Owefolk in action</h2>
-      <video controls preload="metadata" poster="media/screenshots/what-you-owe.png"><source src="media/owefolk-promo.mp4" type="video/mp4">Your browser does not support HTML video.</video>
-      <p>Full HD, narrated, and captioned.</p>
+      <div class="container">
+        <div class="section-head">
+          <div class="eyebrow">A quick guided tour</div>
+          <h2>See Owefolk <span class="gradient">in action</span></h2>
+          <p>Full HD, narrated, and captioned.</p>
+        </div>
+        <div class="video-wrap">
+          <video controls preload="metadata" poster="media/screenshots/home-ledger.png">
+            <source src="media/owefolk-promo.mp4" type="video/mp4">
+            Your browser does not support HTML video.
+          </video>
+        </div>
+      </div>
     </section>
 
     <section class="cta">
-      <h2>Fair math. Less awkwardness.</h2>
-      <p>Start a group, add the next shared expense, and let everyone see where they stand.</p>
-      <a class="button" href="https://github.com/chartmann1590/owefolk/releases/latest">Download the Android release</a>
+      <div class="container">
+        <div class="cta-card">
+          <img src="media/promo-graphic.png" alt="Owefolk app icon" loading="lazy" width="512" height="512">
+          <h2>Fair math. Less awkwardness.</h2>
+          <p>Start a group, add the next shared expense, and let everyone see where they stand.</p>
+          <div class="actions actions-center">
+            <a class="btn btn-light btn-lg" href="https://play.google.com/store/apps/details?id=com.charles.owefolk" rel="noopener">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8 13.7 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1zM14.9 13.2l2.6 2.6-10.5 6-7.4-7.4 1.3-1.3L14.9 13.2zm4.6-1.8c.7.7.7 1.9 0 2.6l-2 2-2.7-2.7 2.7-2.7 2 1.8-1-.2 1 1.8zM4.7 1C5.1.8 5.6.9 6 .1 7.5 1.4 12.3 4.6 14 6.2l-2 2L4.6 1l.1 0z" transform="translate(0 0)"/></svg>
+              Get it on Google Play
+            </a>
+            <a class="btn btn-ghost-dark btn-lg" href="https://github.com/chartmann1590/owefolk" rel="noopener">
+              <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+              View source on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer><span>&copy; 2026 Hartmann Studios</span><span><a href="privacy.html">Privacy</a> &middot; <a href="delete-account.html">Delete account</a> &middot; <a href="https://github.com/chartmann1590/owefolk">GitHub</a></span><span>Owefolk tracks debts but does not hold, send, or verify funds.</span></footer>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a class="brand" href="./"><span class="mark">O</span><span>Owefolk</span></a>
+        <p class="footer-note">Shared tabs, clear friendships. Owefolk tracks debts but does not hold, send, or verify funds.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#gallery">Screenshots</a>
+        <a href="#demo">Video</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="privacy.html">Privacy policy</a>
+        <a href="delete-account.html">Delete account</a>
+        <a href="https://play.google.com/store/apps/details?id=com.charles.owefolk" rel="noopener">Google Play</a>
+        <a href="https://github.com/chartmann1590/owefolk" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="container footer-bar">
+      <span>&copy; 2026 Hartmann Studios</span>
+      <span>Made for friends, not spreadsheets.</span>
+    </div>
+  </footer>
 </body>
 </html>
