@@ -20,6 +20,7 @@ data class Person(
     val color: Long,
     val preferredProvider: PaymentProvider = PaymentProvider.VENMO,
     val paymentHandle: String? = null,
+    val premiumActive: Boolean = false,
 )
 
 data class Group(

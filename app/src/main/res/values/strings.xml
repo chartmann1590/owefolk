@@ -84,6 +84,12 @@
     <!-- Profile -->
     <string name="profile_title">Profile</string>
     <string name="profile_signed_in">Signed in securely</string>
+    <string name="profile_premium">Owefolk Premium</string>
+    <string name="profile_premium_active">You\'re Premium — ads are removed. Thanks for supporting Owefolk!</string>
+    <string name="profile_premium_not">Remove ads and support Owefolk</string>
+    <string name="profile_premium_price">Remove ads · %1$s/month</string>
+    <string name="profile_premium_upgrade">Upgrade</string>
+    <string name="profile_premium_restore">Restore purchases</string>
     <string name="profile_getting_paid">Getting paid</string>
     <string name="profile_repayment_details">How friends should repay you</string>
     <string name="profile_privacy">Privacy</string>

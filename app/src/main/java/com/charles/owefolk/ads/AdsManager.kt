@@ -91,6 +91,7 @@ object AdsManager {
     }
 
     fun onExpenseSaved(activity: Activity) {
+        if (com.charles.owefolk.premium.PremiumManager.isPremiumNow()) return
         val preferences = activity.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
         val completed = preferences.getInt(COMPLETED_EXPENSES, 0) + 1
         preferences.edit().putInt(COMPLETED_EXPENSES, completed).apply()

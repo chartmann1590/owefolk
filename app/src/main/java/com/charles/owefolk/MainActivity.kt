@@ -19,6 +19,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AdsManager.initialize(this)
+        com.charles.owefolk.premium.PremiumManager.start(this)
         enableEdgeToEdge()
         handleDeepLink(intent)
         requestNotificationPermission()

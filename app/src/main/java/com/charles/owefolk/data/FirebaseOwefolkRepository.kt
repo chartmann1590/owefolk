@@ -399,6 +399,7 @@ class FirebaseOwefolkRepository : OwefolkRepository {
         getLong("color") ?: 0xFF5B4BD8,
         runCatching { PaymentProvider.valueOf(getString("preferredProvider") ?: "VENMO") }.getOrDefault(PaymentProvider.VENMO),
         getString("paymentHandle")?.takeUnless(String::isBlank),
+        getBoolean("premiumActive") == true,
     )
 
     private fun DocumentSnapshot.instant(field: String): Instant = getTimestamp(field)?.toDate()?.toInstant()

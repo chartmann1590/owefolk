@@ -129,11 +129,13 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val privacyOptionsRequired by AdsManager.privacyOptionsRequired.collectAsState()
+    val premiumState by com.charles.owefolk.premium.PremiumManager.state.collectAsState()
+    val isPremium = premiumState.isSubscribed || dashboard.user.premiumActive
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             Column {
-                if (currentRoute in RootDestination.entries.map { it.route }) AdMobBanner()
+                if (currentRoute in RootDestination.entries.map { it.route } && !isPremium) AdMobBanner()
                 if (currentRoute in RootDestination.entries.map { it.route }) {
                     NavigationBar(tonalElevation = 0.dp) {
                         RootDestination.entries.forEach { destination ->
@@ -182,7 +184,10 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                     onDeleteAccount = viewModel::deleteAccount,
                     showAdPrivacyOptions = privacyOptionsRequired,
                     onAdPrivacyOptions = { (context as? Activity)?.let(AdsManager::showPrivacyOptions) },
-                    onOpenPrivacyPolicy = { navController.navigate(PRIVACY_ROUTE) })
+                    onOpenPrivacyPolicy = { navController.navigate(PRIVACY_ROUTE) },
+                    premiumState = premiumState,
+                    onUpgradePremium = { (context as? Activity)?.let(com.charles.owefolk.premium.PremiumManager::launch) },
+                    onRestorePremium = { com.charles.owefolk.premium.PremiumManager.refreshSubscriptions() })
             }
             composable(PRIVACY_ROUTE) {
                 PrivacyPolicyScreen(onBack = { navController.popBackStack() })
@@ -194,7 +199,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
         AddExpenseSheet(dashboard.groups, state.busy, onDismiss = { showAddExpense = false }) {
             viewModel.addExpense(it) {
                 showAddExpense = false
-                (context as? Activity)?.let(AdsManager::onExpenseSaved)
+                if (!isPremium) (context as? Activity)?.let(AdsManager::onExpenseSaved)
             }
         }
     }

@@ -66,8 +66,8 @@ android {
         applicationId = "com.charles.owefolk"
         minSdk = 26
         targetSdk = 36
-versionCode = 7
-versionName = "0.6.1"
+versionCode = 8
+versionName = "0.7.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -161,6 +161,7 @@ dependencies {
     implementation(libs.google.mobile.ads)
     implementation(libs.google.ump)
     implementation(libs.google.play.services.auth)
+    implementation(libs.billing)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)

@@ -17,6 +17,7 @@ mlkitTextRecognition = "16.0.1"
 googleMobileAds = "25.4.0"
 ump = "3.2.0"
 playServicesAuth = "21.3.0"
+billing = "6.2.1"
 junit = "4.13.2"
 androidxTest = "1.6.1"
 espresso = "3.6.1"
@@ -56,6 +57,7 @@ mlkit-text-recognition = { module = "com.google.mlkit:text-recognition", version
 google-mobile-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "googleMobileAds" }
 google-ump = { module = "com.google.android.ump:user-messaging-platform", version.ref = "ump" }
 google-play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+billing = { module = "com.android.billingclient:billing", version.ref = "billing" }
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-test-ext = { module = "androidx.test.ext:junit", version.ref = "androidxTest" }
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }

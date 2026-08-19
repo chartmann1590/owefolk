@@ -263,6 +263,9 @@ fun ProfileScreen(
     showAdPrivacyOptions: Boolean,
     onAdPrivacyOptions: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
+    premiumState: com.charles.owefolk.premium.PremiumManager.PremiumUiState = com.charles.owefolk.premium.PremiumManager.PremiumUiState(),
+    onUpgradePremium: () -> Unit = {},
+    onRestorePremium: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val feedbackRepo = remember { com.charles.owefolk.data.feedback.BugReportRepo(context) }
@@ -271,6 +274,7 @@ fun ProfileScreen(
     var chooseProvider by remember { mutableStateOf(false) }
     var editProvider by remember(user.preferredProvider) { mutableStateOf(user.preferredProvider) }
     var editHandle by remember(user.paymentHandle) { mutableStateOf(user.paymentHandle.orEmpty()) }
+    val isPremium = premiumState.isSubscribed || user.premiumActive
     LazyColumn(
         Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -284,6 +288,7 @@ fun ProfileScreen(
                 }
             }
         }
+        item { PremiumCard(isPremium, premiumState, onUpgrade = onUpgradePremium, onRestore = onRestorePremium) }
         item { SectionTitle(stringResource(R.string.profile_getting_paid)) }
         item {
             SettingsRow(
@@ -794,6 +799,54 @@ private fun AvatarStack(people: List<Person>) {
             Box(Modifier.offset(x = (-8 * index).dp)) { Avatar(person, 32.dp) }
         }
         if (people.size > 4) Text("+${people.size - 4}", modifier = Modifier.offset(x = (-8 * 4).dp).align(Alignment.CenterVertically))
+    }
+}
+
+@Composable
+private fun PremiumCard(
+    isPremium: Boolean,
+    state: com.charles.owefolk.premium.PremiumManager.PremiumUiState,
+    onUpgrade: () -> Unit,
+    onRestore: () -> Unit,
+) {
+    ElevatedCard(
+        shape = RoundedCornerShape(22.dp),
+        colors = androidx.compose.material3.CardDefaults.elevatedCardColors(
+            containerColor = if (isPremium) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Default.WorkspacePremium,
+                null,
+                tint = if (isPremium) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(34.dp),
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.profile_premium), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                if (isPremium) {
+                    Text(stringResource(R.string.profile_premium_active), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Text(
+                        stringResource(
+                            if (state.productPrice != null) R.string.profile_premium_price else R.string.profile_premium_not,
+                            state.productPrice ?: "",
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (!isPremium) {
+                    Spacer(Modifier.height(10.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Button(onClick = onUpgrade) { Text(stringResource(R.string.profile_premium_upgrade)) }
+                        Spacer(Modifier.width(10.dp))
+                        TextButton(onClick = onRestore) { Text(stringResource(R.string.profile_premium_restore)) }
+                    }
+                }
+            }
+        }
     }
 }
 
