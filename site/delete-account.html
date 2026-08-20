@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Delete your Owefolk account from inside the app or via this encrypted web request.">
+  <meta name="description" content="Delete your Owefolk account and associated data. Steps for in-app deletion or an encrypted web request, plus what data is deleted, kept, and retained.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5b4bd8">
   <link rel="canonical" href="https://chartmann1590.github.io/owefolk/delete-account.html">
@@ -11,13 +11,36 @@
   <link rel="apple-touch-icon" href="media/apple-touch-icon.png">
   <title>Delete your Owefolk account</title>
   <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Delete your Owefolk account",
+    "url": "https://chartmann1590.github.io/owefolk/delete-account.html",
+    "isPartOf": { "@id": "https://chartmann1590.github.io/owefolk/#website" }
+  }
+  </script>
 </head>
 <body>
   <header class="site-header"><nav class="container"><a class="brand" href="./"><span class="mark">O</span><span>Owefolk</span></a></nav></header>
   <main class="content">
     <div class="eyebrow">Account controls</div>
     <h1>Delete your <span class="gradient">Owefolk account.</span></h1>
-    <p>The fastest path is Profile → Delete account in the Android app. If you cannot access the app, submit this encrypted request.</p>
+    <p>Owefolk is published by Hartmann Studios. You can delete your account and its associated data at any time. Deletion is permanent: after it completes, you cannot sign back in and your personal profile data cannot be restored.</p>
+
+    <h2>How to request account deletion</h2>
+
+    <h3>Option 1 — From the Android app (fastest)</h3>
+    <ol>
+      <li>Open the Owefolk app on your Android device.</li>
+      <li>Open the <strong>Profile</strong> screen.</li>
+      <li>Tap <strong>Delete account</strong>.</li>
+      <li>Review the confirmation dialog, then tap <strong>Delete permanently</strong>.</li>
+    </ol>
+    <p>Deletion starts immediately and is typically completed within minutes.</p>
+
+    <h3>Option 2 — Can't access the app? Use this form</h3>
+    <p>If you no longer have access to the app, submit your account email below. Hartmann Studios verifies ownership before processing, then deletes the account for you.</p>
     <div class="note">Your email and details are encrypted before storage. The public service never stores them in plaintext.</div>
     <form class="form" id="deletion-form">
       <label for="email">Account email</label>
@@ -26,11 +49,30 @@
       <textarea id="details" name="details" rows="4" maxlength="2000"></textarea>
       <label class="honeypot" for="website">Website</label>
       <input class="honeypot" id="website" name="website" type="text" tabindex="-1" autocomplete="off">
-      <button class="button" type="submit">Request deletion</button>
+      <button class="btn btn-primary" type="submit">Request deletion</button>
       <p id="form-status" role="status" aria-live="polite"></p>
     </form>
-    <h2>What happens next</h2>
-    <p>After ownership verification, personal profile data, authentication credentials, device tokens, and payment handles are deleted. Shared financial history is anonymized where it must remain understandable to other group members.</p>
+
+    <h2>What gets deleted</h2>
+    <p>When your account is deleted, the following personal data is removed:</p>
+    <ul>
+      <li>Your account profile (name, initials, avatar color, app settings, and privacy choices)</li>
+      <li>Your sign-in credentials and linked Google sign-in</li>
+      <li>Your email address stored with your account</li>
+      <li>Device notification tokens</li>
+      <li>Your payment preference and payment handle</li>
+      <li>Your group memberships, invitations you created, and personal dashboard cache</li>
+    </ul>
+
+    <h2>What is kept, and for how long</h2>
+    <ul>
+      <li><strong>Shared group history (kept, anonymized):</strong> expenses, split allocations, settlements, and activity that your group members still need are retained so their ledgers stay accurate. Your personal details are replaced with "Deleted member" and stay anonymized for as long as the group exists.</li>
+      <li><strong>Web deletion requests (kept temporarily):</strong> the email and details you submit are encrypted, kept only as long as needed to verify and complete your request, and then deleted. Only a keyed digest is retained afterwards to prevent duplicate requests.</li>
+      <li><strong>Diagnostics and analytics (kept, non-personal):</strong> aggregated app analytics events are designed not to include your personal data, expense amounts, or names, and are retained in line with Google Analytics policy.</li>
+    </ul>
+
+    <h2>Questions?</h2>
+    <p>Contact the publisher through the <a href="https://github.com/chartmann1590/owefolk/issues">Owefolk support tracker</a>. Our privacy policy is at <a href="privacy.html">Privacy Policy</a>.</p>
   </main>
   <footer><span>© 2026 Hartmann Studios</span><span><a href="privacy.html">Privacy</a> &middot; <a href="https://github.com/chartmann1590/owefolk">GitHub</a></span></footer>
   <script>

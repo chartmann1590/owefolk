@@ -66,8 +66,8 @@ android {
         applicationId = "com.charles.owefolk"
         minSdk = 26
         targetSdk = 36
-versionCode = 9
-        versionName = "0.7.1"
+        versionCode = 10
+        versionName = "0.8.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -158,6 +158,7 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.mlkit.text.recognition)
+    implementation(libs.mlkit.translate)
     implementation(libs.google.mobile.ads)
     implementation(libs.google.ump)
     implementation(libs.google.play.services.auth)

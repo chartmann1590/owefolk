@@ -31,6 +31,8 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.charles.owefolk.ui.theme.Coral
 import com.charles.owefolk.ui.theme.Indigo
+import com.charles.owefolk.translate.TranslatedTextResource
+import com.charles.owefolk.translate.rememberTranslated
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -91,8 +93,8 @@ fun AuthScreen() {
                 Icon(Icons.Default.PeopleAlt, null, tint = Color.White, modifier = Modifier.size(48.dp))
             }
             Spacer(Modifier.height(24.dp))
-            Text(stringResource(R.string.auth_welcome), style = MaterialTheme.typography.headlineLarge, color = Color.White)
-            Text(stringResource(R.string.auth_tagline), color = Color.White.copy(alpha = .78f))
+            Text(rememberTranslated(stringResource(R.string.auth_welcome)), style = MaterialTheme.typography.headlineLarge, color = Color.White)
+            Text(rememberTranslated(stringResource(R.string.auth_tagline)), color = Color.White.copy(alpha = .78f))
             Spacer(Modifier.height(34.dp))
             Card(shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -119,16 +121,16 @@ fun AuthScreen() {
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp), enabled = !busy,
-                    ) { Text(stringResource(R.string.auth_google), fontWeight = FontWeight.SemiBold) }
-                    Row(verticalAlignment = Alignment.CenterVertically) { HorizontalDivider(Modifier.weight(1f)); Text(stringResource(R.string.auth_or), color = MaterialTheme.colorScheme.onSurfaceVariant); HorizontalDivider(Modifier.weight(1f)) }
+                    ) { Text(rememberTranslated(stringResource(R.string.auth_google)), fontWeight = FontWeight.SemiBold) }
+                    Row(verticalAlignment = Alignment.CenterVertically) { HorizontalDivider(Modifier.weight(1f)); Text(rememberTranslated(stringResource(R.string.auth_or)), color = MaterialTheme.colorScheme.onSurfaceVariant); HorizontalDivider(Modifier.weight(1f)) }
                     OutlinedTextField(
                         value = email, onValueChange = { email = it.trim() }, modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.auth_email_label)) }, leadingIcon = { Icon(Icons.Default.Email, null) },
+                        label = { TranslatedTextResource(R.string.auth_email_label) }, leadingIcon = { Icon(Icons.Default.Email, null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), singleLine = true,
                     )
                     OutlinedTextField(
                         value = password, onValueChange = { password = it }, modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.auth_password_label)) }, visualTransformation = PasswordVisualTransformation(),
+                        label = { TranslatedTextResource(R.string.auth_password_label) }, visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), singleLine = true,
                     )
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -143,7 +145,7 @@ fun AuthScreen() {
                             },
                             modifier = Modifier.weight(1f).height(52.dp),
                             enabled = email.contains('@') && password.length >= 8 && !busy,
-                        ) { Text(stringResource(R.string.auth_create_account)) }
+                        ) { Text(rememberTranslated(stringResource(R.string.auth_create_account))) }
                         Button(
                             onClick = {
                             scope.launch {
@@ -155,13 +157,13 @@ fun AuthScreen() {
                             },
                             modifier = Modifier.weight(1f).height(52.dp),
                             enabled = email.contains('@') && password.length >= 8 && !busy,
-                        ) { Text(stringResource(R.string.auth_sign_in)) }
+                        ) { Text(rememberTranslated(stringResource(R.string.auth_sign_in))) }
                     }
-                    message?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
+                    message?.let { Text(rememberTranslated(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                 }
             }
             Spacer(Modifier.height(18.dp))
-            Text(stringResource(R.string.auth_terms), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(rememberTranslated(stringResource(R.string.auth_terms)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
     }

@@ -46,6 +46,10 @@ import androidx.compose.ui.unit.sp
 import com.charles.owefolk.domain.*
 import com.charles.owefolk.observability.Telemetry
 import com.charles.owefolk.receipt.ReceiptScanner
+import com.charles.owefolk.translate.TranslatedText
+import com.charles.owefolk.translate.TranslatedTextResource
+import com.charles.owefolk.translate.rememberTranslated
+import com.charles.owefolk.translate.rememberTranslatedRes
 import com.charles.owefolk.ui.theme.Coral
 import com.charles.owefolk.ui.theme.Indigo
 import com.charles.owefolk.ui.theme.Mint
@@ -78,8 +82,8 @@ fun HomeScreen(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.home_greeting, dashboard.user.name), style = MaterialTheme.typography.headlineMedium)
-                    Text(stringResource(R.string.home_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(rememberTranslated(stringResource(R.string.home_greeting, dashboard.user.name)), style = MaterialTheme.typography.headlineMedium)
+                    TranslatedTextResource(R.string.home_subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Avatar(dashboard.user, 48.dp)
             }
@@ -105,30 +109,31 @@ fun HomeScreen(
                 items(dashboard.groups, key = Group::id) { group -> GroupCard(group, onGroupClick) }
             }
         }
-        item { SectionTitle("Recent activity") }
+        item { SectionTitle(stringResource(R.string.activity_recent)) }
         items(dashboard.activities.take(4), key = ActivityItem::id) { ActivityRow(it) }
     }
 }
 
 @Composable
 private fun BalanceHero(dashboard: Dashboard) {
+    val netBalanceA11y = stringResource(R.string.a11y_net_balance, Money(dashboard.netMinorUnits).formatted())
     Card(
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Net balance ${Money(dashboard.netMinorUnits).formatted()}" },
+        modifier = Modifier.fillMaxWidth().semantics { contentDescription = netBalanceA11y },
     ) {
         Column(
             Modifier.background(Brush.linearGradient(listOf(Indigo, Color(0xFF7867EA), Coral))).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            Text("Your net balance", color = Color.White.copy(alpha = .82f), style = MaterialTheme.typography.labelLarge)
+            TranslatedTextResource(R.string.balance_net, color = Color.White.copy(alpha = .82f), style = MaterialTheme.typography.labelLarge)
             Text(
                 (if (dashboard.netMinorUnits >= 0) "+" else "−") + Money(kotlin.math.abs(dashboard.netMinorUnits)).formatted(),
                 color = Color.White, style = MaterialTheme.typography.displaySmall,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                BalancePill("You’re owed", dashboard.owedToYouMinorUnits, Icons.Default.SouthWest, Modifier.weight(1f))
-                BalancePill("You owe", dashboard.youOweMinorUnits, Icons.Default.NorthEast, Modifier.weight(1f))
+                BalancePill(stringResource(R.string.balance_owed), dashboard.owedToYouMinorUnits, Icons.Default.SouthWest, Modifier.weight(1f))
+                BalancePill(stringResource(R.string.balance_owe), dashboard.youOweMinorUnits, Icons.Default.NorthEast, Modifier.weight(1f))
             }
         }
     }
@@ -140,7 +145,7 @@ private fun BalancePill(label: String, amount: Long, icon: androidx.compose.ui.g
         Icon(icon, null, tint = Color.White, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(8.dp))
         Column {
-            Text(label, color = Color.White.copy(alpha = .75f), style = MaterialTheme.typography.labelSmall)
+            Text(rememberTranslated(label), color = Color.White.copy(alpha = .75f), style = MaterialTheme.typography.labelSmall)
             Text(Money(amount).formatted(), color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
@@ -154,14 +159,14 @@ private fun SettlementConfirmation(settlement: Settlement, onConfirm: (String) -
                 Avatar(settlement.payer, 44.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("${settlement.payer.name} marked a payment sent", fontWeight = FontWeight.SemiBold)
+                    TranslatedText(stringResource(R.string.settlement_marked_sent, settlement.payer.name), fontWeight = FontWeight.SemiBold)
                     Text(providerLabel(settlement.provider), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(settlement.amount.formatted(), style = MaterialTheme.typography.titleLarge, color = Mint)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(onClick = { onReject(settlement.id) }, Modifier.weight(1f)) { Text("Not received") }
-                Button(onClick = { onConfirm(settlement.id) }, Modifier.weight(1f)) { Icon(Icons.Default.Check, null); Spacer(Modifier.width(6.dp)); Text("Confirm") }
+                OutlinedButton(onClick = { onReject(settlement.id) }, Modifier.weight(1f)) { TranslatedTextResource(R.string.settlement_not_received) }
+                Button(onClick = { onConfirm(settlement.id) }, Modifier.weight(1f)) { Icon(Icons.Default.Check, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.settlement_confirm) }
             }
         }
     }
@@ -174,8 +179,8 @@ private fun SentPendingCard(settlement: Settlement) {
             Avatar(settlement.recipient, 44.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text("You sent ${settlement.recipient.name} a payment", fontWeight = FontWeight.SemiBold)
-                Text("Awaiting confirmation • ${providerLabel(settlement.provider)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TranslatedText(stringResource(R.string.settlement_you_sent, settlement.recipient.name), fontWeight = FontWeight.SemiBold)
+                Text(rememberTranslated(stringResource(R.string.settlement_awaiting, providerLabel(settlement.provider))), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(settlement.amount.formatted(), style = MaterialTheme.typography.titleLarge, color = Mint)
         }
@@ -192,15 +197,15 @@ private fun GroupCard(group: Group, onClick: (Group) -> Unit) {
                 Icon(Icons.Default.ChevronRight, "Open ${group.name}", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Column {
-                Text(group.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${group.members.size} people • ${group.currencyCode}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TranslatedText(group.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(rememberTranslated(stringResource(R.string.groups_people_currency, group.members.size, group.currencyCode)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
                 when {
-                    group.netMinorUnits > 0 -> "You’re owed ${Money(group.netMinorUnits, group.currencyCode).formatted()}"
-                    group.netMinorUnits < 0 -> "You owe ${Money(-group.netMinorUnits, group.currencyCode).formatted()}"
-                    group.repayments.isNotEmpty() -> "Your net is even • details inside"
-                    else -> "All settled up"
+                    group.netMinorUnits > 0 -> rememberTranslated(stringResource(R.string.group_card_owed, Money(group.netMinorUnits, group.currencyCode).formatted()))
+                    group.netMinorUnits < 0 -> rememberTranslated(stringResource(R.string.group_card_owe, Money(-group.netMinorUnits, group.currencyCode).formatted()))
+                    group.repayments.isNotEmpty() -> rememberTranslated(stringResource(R.string.group_card_even))
+                    else -> rememberTranslated(stringResource(R.string.group_detail_settled_up))
                 },
                 color = if (group.netMinorUnits >= 0) Mint else Coral, fontWeight = FontWeight.SemiBold,
             )
@@ -217,19 +222,19 @@ fun GroupsScreen(groups: List<Group>, onGroupClick: (Group) -> Unit, onReminder:
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Groups", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.weight(1f))
-                FilledTonalButton(onCreateGroup) { Icon(Icons.Default.GroupAdd, null); Spacer(Modifier.width(6.dp)); Text("New") }
+                TranslatedTextResource(R.string.groups_title, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.weight(1f))
+                FilledTonalButton(onCreateGroup) { Icon(Icons.Default.GroupAdd, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.groups_new) }
             }
         }
-        item { Text("Shared tabs, without the awkward math.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        item { TranslatedTextResource(R.string.groups_subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         items(groups, key = Group::id) { group ->
             ElevatedCard(onClick = { onGroupClick(group) }, shape = RoundedCornerShape(22.dp)) {
                 Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(group.emoji, fontSize = 28.sp, modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer).padding(10.dp))
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(group.name, style = MaterialTheme.typography.titleMedium)
-                        Text("${group.members.size} members", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TranslatedText(group.name, style = MaterialTheme.typography.titleMedium)
+                        Text(rememberTranslated(stringResource(R.string.groups_members, group.members.size)), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             if (group.netMinorUnits >= 0) "+${Money(group.netMinorUnits).formatted()}" else "−${Money(-group.netMinorUnits).formatted()}",
                             color = if (group.netMinorUnits >= 0) Mint else Coral, fontWeight = FontWeight.Bold,
@@ -248,8 +253,8 @@ fun ActivityScreen(activities: List<ActivityItem>) {
         Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        item { Text(stringResource(R.string.activity_title), style = MaterialTheme.typography.headlineLarge) }
-        item { Text(stringResource(R.string.activity_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 12.dp)) }
+        item { Text(rememberTranslated(stringResource(R.string.activity_title)), style = MaterialTheme.typography.headlineLarge) }
+        item { Text(rememberTranslated(stringResource(R.string.activity_subtitle)), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 12.dp)) }
         items(activities, key = ActivityItem::id) { ActivityRow(it) }
     }
 }
@@ -263,6 +268,7 @@ fun ProfileScreen(
     showAdPrivacyOptions: Boolean,
     onAdPrivacyOptions: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
+    onLanguageSettings: () -> Unit = {},
     premiumState: com.charles.owefolk.premium.PremiumManager.PremiumUiState = com.charles.owefolk.premium.PremiumManager.PremiumUiState(),
     onUpgradePremium: () -> Unit = {},
     onRestorePremium: () -> Unit = {},
@@ -279,12 +285,12 @@ fun ProfileScreen(
         Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item { Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.headlineLarge) }
+        item { TranslatedTextResource(R.string.profile_title, style = MaterialTheme.typography.headlineLarge) }
         item {
             ElevatedCard(shape = RoundedCornerShape(24.dp)) {
                 Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Avatar(user, 64.dp); Spacer(Modifier.width(16.dp))
-                    Column { Text(user.name, style = MaterialTheme.typography.titleLarge); Text(stringResource(R.string.profile_signed_in), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    Column { Text(user.name, style = MaterialTheme.typography.titleLarge); TranslatedTextResource(R.string.profile_signed_in, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
             }
         }
@@ -303,6 +309,9 @@ fun ProfileScreen(
         }
         item { SectionTitle(stringResource(R.string.profile_privacy)) }
         item {
+            SettingsRow(Icons.Default.Translate, stringResource(R.string.language_settings), stringResource(R.string.language_settings_desc), onClick = onLanguageSettings)
+        }
+        item {
             SettingsSwitch(Icons.Default.Analytics, stringResource(R.string.profile_diagnostics), stringResource(R.string.profile_diagnostics_desc), analyticsEnabled) {
                 analyticsEnabled = it
                 com.charles.owefolk.observability.Telemetry.setCollectionEnabled(context, it)
@@ -319,7 +328,7 @@ fun ProfileScreen(
     if (chooseProvider) AlertDialog(
         onDismissRequest = { chooseProvider = false },
         icon = { Icon(Icons.Default.Payments, null) },
-        title = { Text("Your repayment details") },
+        title = { TranslatedTextResource(R.string.profile_repayment_dialog_title) },
         text = {
             LazyColumn(Modifier.heightIn(max = 440.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 PaymentProvider.entries.forEach { provider ->
@@ -339,8 +348,8 @@ fun ProfileScreen(
                         editHandle,
                         { editHandle = it.take(160) },
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        label = { Text(paymentHandleLabel(editProvider)) },
-                        supportingText = { Text("This is shared with your group members so the right person can repay you.") },
+                        label = { Text(rememberTranslated(paymentHandleLabel(editProvider))) },
+                        supportingText = { TranslatedTextResource(R.string.profile_repayment_handle_hint) },
                         singleLine = true,
                     )
                 }
@@ -355,16 +364,16 @@ fun ProfileScreen(
                     chooseProvider = false
                 },
                 enabled = valid,
-            ) { Text("Save") }
+            ) { TranslatedTextResource(R.string.profile_repayment_dialog_save) }
         },
-        dismissButton = { TextButton(onClick = { chooseProvider = false }) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = { chooseProvider = false }) { TranslatedTextResource(R.string.profile_repayment_dialog_cancel) } },
     )
     if (confirmDeletion) AlertDialog(
         onDismissRequest = { confirmDeletion = false }, icon = { Icon(Icons.Default.DeleteForever, null) },
-        title = { Text(stringResource(R.string.profile_delete_confirm_title)) },
-        text = { Text("Your profile, sign-in, devices, and payment handles will be deleted. Shared ledger entries will remain as “Deleted member” so friends keep an accurate history.") },
-        confirmButton = { TextButton(onClick = { confirmDeletion = false; onDeleteAccount() }) { Text(stringResource(R.string.profile_delete_confirm), color = MaterialTheme.colorScheme.error) } },
-        dismissButton = { TextButton(onClick = { confirmDeletion = false }) { Text(stringResource(R.string.profile_delete_cancel)) } },
+        title = { TranslatedTextResource(R.string.profile_delete_confirm_title) },
+        text = { TranslatedTextResource(R.string.profile_delete_confirm_text) },
+        confirmButton = { TextButton(onClick = { confirmDeletion = false; onDeleteAccount() }) { Text(rememberTranslated(stringResource(R.string.profile_delete_confirm)), color = MaterialTheme.colorScheme.error) } },
+        dismissButton = { TextButton(onClick = { confirmDeletion = false }) { TranslatedTextResource(R.string.profile_delete_cancel) } },
     )
 }
 
@@ -377,11 +386,11 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.privacy_back)) }
-                Text(stringResource(R.string.privacy_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                TranslatedTextResource(R.string.privacy_title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
         }
-        item { Text(stringResource(R.string.privacy_updated), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        item { Text(stringResource(R.string.privacy_intro), style = MaterialTheme.typography.bodyLarge) }
+        item { TranslatedTextResource(R.string.privacy_updated, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        item { TranslatedTextResource(R.string.privacy_intro, style = MaterialTheme.typography.bodyLarge) }
         item { PrivacySection(stringResource(R.string.privacy_data_title), stringResource(R.string.privacy_data_1), stringResource(R.string.privacy_data_2)) }
         item { PrivacySection(stringResource(R.string.privacy_firebase_title), stringResource(R.string.privacy_firebase_1), stringResource(R.string.privacy_firebase_2)) }
         item { PrivacySection(stringResource(R.string.privacy_receipts_title), stringResource(R.string.privacy_receipts_1)) }
@@ -404,8 +413,8 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
 @Composable
 private fun PrivacySection(title: String, vararg paragraphs: String) {
     Column(Modifier.fillMaxWidth().padding(top = 18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        paragraphs.forEach { Text(it, style = MaterialTheme.typography.bodyMedium) }
+        Text(rememberTranslated(title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        paragraphs.forEach { Text(rememberTranslated(it), style = MaterialTheme.typography.bodyMedium) }
     }
 }
 
@@ -417,19 +426,19 @@ fun CreateGroupDialog(busy: Boolean, onDismiss: () -> Unit, onCreate: (String, S
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Text(emoji, fontSize = 34.sp) },
-        title = { Text(stringResource(R.string.create_group_title)) },
+        title = { TranslatedTextResource(R.string.create_group_title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(name, { name = it.take(60) }, label = { Text(stringResource(R.string.create_group_name)) }, singleLine = true)
+                OutlinedTextField(name, { name = it.take(60) }, label = { TranslatedTextResource(R.string.create_group_name) }, singleLine = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(emoji, { emoji = it.take(8) }, Modifier.weight(.8f), label = { Text(stringResource(R.string.create_group_emoji)) }, singleLine = true)
-                    OutlinedTextField(currency, { currency = it.uppercase().filter(Char::isLetter).take(3) }, Modifier.weight(1.2f), label = { Text(stringResource(R.string.create_group_currency)) }, singleLine = true)
+                    OutlinedTextField(emoji, { emoji = it.take(8) }, Modifier.weight(.8f), label = { TranslatedTextResource(R.string.create_group_emoji) }, singleLine = true)
+                    OutlinedTextField(currency, { currency = it.uppercase().filter(Char::isLetter).take(3) }, Modifier.weight(1.2f), label = { TranslatedTextResource(R.string.create_group_currency) }, singleLine = true)
                 }
-                Text(stringResource(R.string.create_group_currency_locked), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TranslatedTextResource(R.string.create_group_currency_locked, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        confirmButton = { Button(onClick = { onCreate(name, emoji.ifBlank { "👥" }, currency) }, enabled = name.isNotBlank() && currency.length == 3 && !busy) { Text(stringResource(R.string.create_group_create)) } },
-        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.create_group_cancel)) } },
+        confirmButton = { Button(onClick = { onCreate(name, emoji.ifBlank { "👥" }, currency) }, enabled = name.isNotBlank() && currency.length == 3 && !busy) { TranslatedTextResource(R.string.create_group_create) } },
+        dismissButton = { TextButton(onDismiss) { TranslatedTextResource(R.string.create_group_cancel) } },
     )
 }
 
@@ -517,7 +526,7 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
             Modifier.fillMaxWidth().imePadding(), state = listState, contentPadding = PaddingValues(22.dp, 4.dp, 22.dp, 36.dp + navBarBottom),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { Text(stringResource(R.string.add_expense_title), style = MaterialTheme.typography.headlineMedium) }
+            item { TranslatedTextResource(R.string.add_expense_title, style = MaterialTheme.typography.headlineMedium) }
             item {
                 ElevatedCard(shape = RoundedCornerShape(22.dp), colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                     Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -528,8 +537,8 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
                             }
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(stringResource(R.string.add_expense_scan_title), style = MaterialTheme.typography.titleMedium)
-                                Text(stringResource(R.string.add_expense_scan_desc), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                TranslatedTextResource(R.string.add_expense_scan_title, style = MaterialTheme.typography.titleMedium)
+                                TranslatedTextResource(R.string.add_expense_scan_desc, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -541,44 +550,48 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
                                 },
                                 enabled = !scanningReceipt,
                                 modifier = Modifier.weight(1f),
-                            ) { Icon(Icons.Default.PhotoCamera, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.add_expense_camera)) }
+                            ) { Icon(Icons.Default.PhotoCamera, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.add_expense_camera) }
                             OutlinedButton(
                                 onClick = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                 enabled = !scanningReceipt,
                                 modifier = Modifier.weight(1f),
-                            ) { Icon(Icons.Default.PhotoLibrary, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.add_expense_photos)) }
+                            ) { Icon(Icons.Default.PhotoLibrary, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.add_expense_photos) }
                         }
-                        receiptStatus?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        receiptStatus?.let { TranslatedText(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                 }
             }
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(groups, key = Group::id) { group -> FilterChip(selected = selectedGroup?.id == group.id, onClick = { selectedGroup = group }, label = { Text("${group.emoji} ${group.name}") }) }
+                    items(groups, key = Group::id) { group -> FilterChip(selected = selectedGroup?.id == group.id, onClick = { selectedGroup = group }, label = { TranslatedText("${group.emoji} ${group.name}") }) }
                 }
             }
             item {
                 OutlinedTextField(title, { title = it.take(80) }, Modifier.fillMaxWidth().scrollListItemIntoViewOnFocus(scope, listState, 3),
-                    label = { Text(stringResource(R.string.add_expense_what)) }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.ReceiptLong, null) }, singleLine = true)
+                    label = { TranslatedTextResource(R.string.add_expense_what) }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.ReceiptLong, null) }, singleLine = true)
             }
             item {
                 OutlinedTextField(amountText, { newValue ->
                     val filtered = newValue.filter { char -> char.isDigit() || char == '.' }
                     if (filtered.count { it == '.' } > 1) { } else amountText = filtered
                 }, Modifier.fillMaxWidth().scrollListItemIntoViewOnFocus(scope, listState, 4),
-                    label = { Text(stringResource(R.string.add_expense_amount)) }, prefix = { Text(currencySymbol(selectedGroup?.currencyCode ?: "USD")) }, textStyle = MaterialTheme.typography.headlineMedium,
+                    label = { TranslatedTextResource(R.string.add_expense_amount) }, prefix = { Text(currencySymbol(selectedGroup?.currencyCode ?: "USD")) }, textStyle = MaterialTheme.typography.headlineMedium,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
             }
             item {
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     SplitMode.entries.forEachIndexed { index, splitMode ->
                         SegmentedButton(selected = mode == splitMode, onClick = { mode = splitMode; valueInputs.clear() },
-                            shape = SegmentedButtonDefaults.itemShape(index, SplitMode.entries.size)) { Text(splitMode.name.lowercase().replaceFirstChar(Char::uppercase)) }
+                            shape = SegmentedButtonDefaults.itemShape(index, SplitMode.entries.size)) { TranslatedTextResource(when (splitMode) {
+                                SplitMode.EQUAL -> R.string.split_mode_equal
+                                SplitMode.EXACT -> R.string.split_mode_exact
+                                SplitMode.PERCENT -> R.string.split_mode_percent
+                            }) }
                     }
                 }
             }
             selectedGroup?.let { group ->
-                item { Text(stringResource(R.string.add_expense_split_with), style = MaterialTheme.typography.titleMedium) }
+                item { TranslatedTextResource(R.string.add_expense_split_with, style = MaterialTheme.typography.titleMedium) }
                 items(group.members, key = Person::id) { person ->
                     val selected = person.id in selectedIds
                     Row(Modifier.fillMaxWidth().clickable { selectedIds = if (selected) selectedIds - person.id else selectedIds + person.id }, verticalAlignment = Alignment.CenterVertically) {
@@ -599,7 +612,13 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
                 }
             }
             if (!sharesValid && amountMinor > 0 && mode != SplitMode.EQUAL) {
-                item { Text(if (mode == SplitMode.EXACT) context.getString(R.string.add_expense_exact_validation, Money(amountMinor, selectedGroup?.currencyCode ?: "USD").formatted()) else stringResource(R.string.add_expense_percent_validation), color = MaterialTheme.colorScheme.error) }
+                item {
+                TranslatedText(
+                    if (mode == SplitMode.EXACT) rememberTranslatedRes(R.string.add_expense_exact_validation, Money(amountMinor, selectedGroup?.currencyCode ?: "USD").formatted())
+                    else rememberTranslatedRes(R.string.add_expense_percent_validation),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             }
             item {
                 Button(
@@ -608,7 +627,7 @@ fun AddExpenseSheet(groups: List<Group>, busy: Boolean, onDismiss: () -> Unit, o
                         onSave(NewExpense(selectedGroup?.id ?: return@Button, title, amountMinor, mode, selectedIds.toList(), exact, percentages))
                     },
                     modifier = Modifier.fillMaxWidth().height(54.dp),
-                ) { if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else { Icon(Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.add_expense_save)) } }
+                ) { if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else { Icon(Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); TranslatedTextResource(R.string.add_expense_save) } }
             }
         }
     }
@@ -636,28 +655,30 @@ fun GroupDetailSheet(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(group.emoji, fontSize = 38.sp); Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) { Text(group.name, style = MaterialTheme.typography.headlineMedium); Text(context.getString(R.string.groups_people_currency, group.members.size, group.currencyCode), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                Column(Modifier.weight(1f)) { TranslatedText(group.name, style = MaterialTheme.typography.headlineMedium); Text(rememberTranslated(stringResource(R.string.groups_people_currency, group.members.size, group.currencyCode)), color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), shape = RoundedCornerShape(22.dp)) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(when {
-                        group.netMinorUnits > 0 -> stringResource(R.string.group_detail_youre_owed)
-                        group.netMinorUnits < 0 -> stringResource(R.string.group_detail_you_owe)
-                        owedToYou.isNotEmpty() || youOwe.isNotEmpty() -> stringResource(R.string.group_detail_net_balance)
-                        else -> stringResource(R.string.group_detail_settled_up)
-                    })
+                    Text(rememberTranslated(stringResource(
+                        when {
+                            group.netMinorUnits > 0 -> R.string.group_detail_youre_owed
+                            group.netMinorUnits < 0 -> R.string.group_detail_you_owe
+                            owedToYou.isNotEmpty() || youOwe.isNotEmpty() -> R.string.group_detail_net_balance
+                            else -> R.string.group_detail_settled_up
+                        },
+                    )))
                     Text(Money(kotlin.math.abs(group.netMinorUnits), group.currencyCode).formatted(), style = MaterialTheme.typography.displaySmall)
                     if (group.netMinorUnits == 0L && (owedToYou.isNotEmpty() || youOwe.isNotEmpty())) {
-                        Text(stringResource(R.string.group_detail_cancel_out), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TranslatedTextResource(R.string.group_detail_cancel_out, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
             ElevatedCard(shape = RoundedCornerShape(20.dp)) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(if (group.simplifyDebts) stringResource(R.string.group_detail_simplified) else stringResource(R.string.group_detail_direct), fontWeight = FontWeight.SemiBold)
+                        Text(rememberTranslated(stringResource(if (group.simplifyDebts) R.string.group_detail_simplified else R.string.group_detail_direct)), fontWeight = FontWeight.SemiBold)
                         Text(
-                            if (group.simplifyDebts) stringResource(R.string.group_detail_simplified_desc) else stringResource(R.string.group_detail_direct_desc),
+                            rememberTranslated(stringResource(if (group.simplifyDebts) R.string.group_detail_simplified_desc else R.string.group_detail_direct_desc)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -665,12 +686,12 @@ fun GroupDetailSheet(
                     Switch(group.simplifyDebts, onRepaymentModeChange)
                 }
             }
-            Text(stringResource(R.string.group_detail_shared_setting), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TranslatedTextResource(R.string.group_detail_shared_setting, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             if (owedToYou.isNotEmpty()) {
                 SectionTitle(stringResource(R.string.group_detail_who_owes_you), stringResource(if (owedToYou.size == 1) R.string.group_detail_person else R.string.group_detail_people, owedToYou.size))
                 owedToYou.forEach { repayment -> OwedToYouCard(repayment, currentUser) }
-                OutlinedButton(onReminder, Modifier.fillMaxWidth()) { Icon(Icons.Default.NotificationsActive, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.group_detail_send_reminder)) }
+                OutlinedButton(onReminder, Modifier.fillMaxWidth()) { Icon(Icons.Default.NotificationsActive, null); Spacer(Modifier.width(8.dp)); TranslatedTextResource(R.string.group_detail_send_reminder) }
             }
             if (youOwe.isNotEmpty()) {
                 SectionTitle(stringResource(R.string.group_detail_who_you_owe), stringResource(if (youOwe.size == 1) R.string.group_detail_payment else R.string.group_detail_payments, youOwe.size))
@@ -694,12 +715,12 @@ fun GroupDetailSheet(
                         },
                     )
                 }
-                Text(stringResource(R.string.group_detail_confirm_text), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TranslatedTextResource(R.string.group_detail_confirm_text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (owedToYou.isEmpty() && youOwe.isEmpty()) {
-                Text(stringResource(R.string.group_detail_no_repayments), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TranslatedTextResource(R.string.group_detail_no_repayments, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            OutlinedButton(onInvite, Modifier.fillMaxWidth()) { Icon(Icons.Default.Share, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.group_detail_invite)) }
+            OutlinedButton(onInvite, Modifier.fillMaxWidth()) { Icon(Icons.Default.Share, null); Spacer(Modifier.width(8.dp)); TranslatedTextResource(R.string.group_detail_invite) }
         }
     }
 }
@@ -711,7 +732,7 @@ private fun OwedToYouCard(repayment: Repayment, currentUser: Person) {
             Avatar(repayment.from, 44.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.owed_you, repayment.from.name), fontWeight = FontWeight.SemiBold)
+                TranslatedText(stringResource(R.string.owed_you, repayment.from.name), fontWeight = FontWeight.SemiBold)
                 Text(
                     stringResource(R.string.owed_provider_handle, providerLabel(currentUser.preferredProvider), currentUser.paymentHandle?.let { " • $it" } ?: ""),
                     style = MaterialTheme.typography.bodySmall,
@@ -733,10 +754,10 @@ private fun YouOweCard(repayment: Repayment, launched: Boolean, onPay: () -> Uni
                 Avatar(recipient, 44.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.you_owe, recipient.name), fontWeight = FontWeight.SemiBold)
+                    TranslatedText(stringResource(R.string.you_owe, recipient.name), fontWeight = FontWeight.SemiBold)
                     Text(
                         if (paymentReady) stringResource(R.string.you_owe_provider_handle, providerLabel(recipient.preferredProvider), recipient.paymentHandle?.let { " • $it" } ?: "")
-                        else stringResource(R.string.group_detail_waiting_handle, recipient.name),
+                        else rememberTranslated(stringResource(R.string.group_detail_waiting_handle, recipient.name)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -746,11 +767,11 @@ private fun YouOweCard(repayment: Repayment, launched: Boolean, onPay: () -> Uni
             if (!launched) {
                 Button(onPay, Modifier.fillMaxWidth(), enabled = paymentReady) {
                     Icon(Icons.Default.OpenInNew, null); Spacer(Modifier.width(8.dp))
-                    Text(if (recipient.preferredProvider == PaymentProvider.CASH) stringResource(R.string.group_detail_pay_cash) else stringResource(R.string.group_detail_open_provider, providerLabel(recipient.preferredProvider)))
+                    Text(if (recipient.preferredProvider == PaymentProvider.CASH) stringResource(R.string.group_detail_pay_cash) else rememberTranslated(stringResource(R.string.group_detail_open_provider, providerLabel(recipient.preferredProvider))))
                 }
             } else {
                 Button(onMarkSent, Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Check, null); Spacer(Modifier.width(8.dp)); Text("I’ve sent it")
+                    Icon(Icons.Default.Check, null); Spacer(Modifier.width(8.dp)); TranslatedTextResource(R.string.group_detail_mark_sent)
                 }
             }
         }
@@ -769,8 +790,8 @@ private fun ActivityRow(item: ActivityItem) {
         Box(Modifier.size(44.dp).clip(CircleShape).background(color.copy(alpha = .14f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = color) }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(item.title, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("${item.detail} • ${relativeTime(item.timestamp)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TranslatedText(item.title, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, interactive = true)
+            TranslatedText("${item.detail} • ${relativeTime(item.timestamp)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, interactive = true)
         }
         item.amount?.let { Text(it.formatted(), fontWeight = FontWeight.Bold) }
     }
@@ -779,8 +800,8 @@ private fun ActivityRow(item: ActivityItem) {
 @Composable
 private fun SectionTitle(title: String, action: String? = null) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-        action?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge) }
+        Text(rememberTranslated(title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+        action?.let { Text(rememberTranslated(it), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge) }
     }
 }
 
@@ -824,15 +845,15 @@ private fun PremiumCard(
             )
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.profile_premium), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(rememberTranslated(stringResource(R.string.profile_premium)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 if (isPremium) {
-                    Text(stringResource(R.string.profile_premium_active), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(rememberTranslated(stringResource(R.string.profile_premium_active)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     Text(
-                        stringResource(
+                        rememberTranslated(stringResource(
                             if (state.productPrice != null) R.string.profile_premium_price else R.string.profile_premium_not,
                             state.productPrice ?: "",
-                        ),
+                        )),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -840,9 +861,9 @@ private fun PremiumCard(
                 if (!isPremium) {
                     Spacer(Modifier.height(10.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(onClick = onUpgrade) { Text(stringResource(R.string.profile_premium_upgrade)) }
+                        Button(onClick = onUpgrade) { Text(rememberTranslated(stringResource(R.string.profile_premium_upgrade))) }
                         Spacer(Modifier.width(10.dp))
-                        TextButton(onClick = onRestore) { Text(stringResource(R.string.profile_premium_restore)) }
+                        TextButton(onClick = onRestore) { Text(rememberTranslated(stringResource(R.string.profile_premium_restore))) }
                     }
                 }
             }
@@ -854,7 +875,7 @@ private fun PremiumCard(
 private fun SettingsRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, destructive: Boolean = false, onClick: () -> Unit) {
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick).padding(14.dp).semantics { contentDescription = "$title, $subtitle" }, verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, null, tint = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.width(14.dp)); Column(Modifier.weight(1f)) { Text(title, fontWeight = FontWeight.SemiBold, color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface); Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        Spacer(Modifier.width(14.dp)); Column(Modifier.weight(1f)) { Text(rememberTranslated(title), fontWeight = FontWeight.SemiBold, color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface); Text(rememberTranslated(subtitle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.outline)
     }
 }
@@ -863,7 +884,7 @@ private fun SettingsRow(icon: androidx.compose.ui.graphics.vector.ImageVector, t
 private fun SettingsSwitch(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, checked: Boolean, onChecked: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, null, tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) { Text(title, fontWeight = FontWeight.SemiBold); Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        Column(Modifier.weight(1f)) { Text(rememberTranslated(title), fontWeight = FontWeight.SemiBold); Text(rememberTranslated(subtitle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         Switch(checked, onChecked)
     }
 }

@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.charles.owefolk.R
 import com.charles.owefolk.domain.PaymentProvider
+import com.charles.owefolk.translate.LanguagePickerUi
+import com.charles.owefolk.translate.TranslatedText
+import com.charles.owefolk.translate.TranslatedTextResource
+import com.charles.owefolk.translate.rememberTranslatedRes
 import com.charles.owefolk.ui.theme.Coral
 import com.charles.owefolk.ui.theme.Indigo
 
@@ -83,7 +87,10 @@ fun OnboardingScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(message) {
-        message?.let { snackbarHostState.showSnackbar(it); onClearMessage() }
+        message?.let {
+            snackbarHostState.showSnackbar(com.charles.owefolk.translate.TranslationManager.translate(it) ?: it)
+            onClearMessage()
+        }
     }
 
     val initials = remember(name) {
@@ -93,6 +100,7 @@ fun OnboardingScreen(
     val handleValid = provider == PaymentProvider.CASH ||
         (handle.isNotBlank() && (provider != PaymentProvider.OTHER || handle.startsWith("https://")))
     val nameValid = name.isNotBlank()
+    val totalSteps = 4
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
@@ -107,20 +115,27 @@ fun OnboardingScreen(
                         Icon(Icons.Default.PeopleAlt, null, tint = Color.White, modifier = Modifier.size(38.dp))
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.onboard_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-                        Text(stringResource(R.string.onboard_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                        TranslatedTextResource(R.string.onboard_title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                        TranslatedTextResource(R.string.onboard_subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                     }
-                    Column(Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.onboard_step_label, step + 1, 3), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.height(6.dp))
-                        LinearProgressIndicator(progress = { (step + 1) / 3f }, Modifier.fillMaxWidth().height(6.dp))
+                    if (step > 0) {
+                        Column(Modifier.fillMaxWidth()) {
+                            Text(
+                                rememberTranslatedRes(R.string.onboard_step_label, step + 1, totalSteps),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            LinearProgressIndicator(progress = { (step + 1) / totalSteps.toFloat() }, Modifier.fillMaxWidth().height(6.dp))
+                        }
                     }
 
                     Card(shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             when (step) {
-                                0 -> NameStep(name, { name = it.take(60) }, color, { color = it }, initials)
-                                1 -> PaymentStep(provider, { provider = it }, handle, { handle = it.take(160) }, handleValid)
+                                0 -> LanguageStep()
+                                1 -> NameStep(name, { name = it.take(60) }, color, { color = it }, initials)
+                                2 -> PaymentStep(provider, { provider = it }, handle, { handle = it.take(160) }, handleValid)
                                 else -> GroupStep(
                                     createdGroup, joinedGroup, onOpenCreate = { showCreateGroup = true },
                                     joinLink, { joinLink = it }, joinError,
@@ -148,23 +163,23 @@ fun OnboardingScreen(
                         onClick = { step = (step - 1).coerceAtLeast(0) },
                         enabled = step > 0 && !busy,
                         modifier = Modifier.weight(1f).height(52.dp),
-                    ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.onboard_back)) }
-                    if (step < 2) {
+                    ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.onboard_back) }
+                    if (step < 3) {
                         Button(
                             onClick = {
-                                if (step == 0 && nameValid) onSaveNameDone(name.trim(), color)
-                                if (step == 1 && handleValid) onPaymentDone(provider, handle.takeIf { provider != PaymentProvider.CASH })
+                                if (step == 1 && nameValid) onSaveNameDone(name.trim(), color)
+                                if (step == 2 && handleValid) onPaymentDone(provider, handle.takeIf { provider != PaymentProvider.CASH })
                                 step += 1
                             },
-                            enabled = (step == 0 && nameValid || step == 1 && handleValid) && !busy,
+                            enabled = (step == 1 && nameValid || step == 2 && handleValid || step == 0) && !busy,
                             modifier = Modifier.weight(1.6f).height(52.dp),
-                        ) { Text(stringResource(R.string.onboard_continue), fontWeight = FontWeight.SemiBold) }
+                        ) { TranslatedTextResource(R.string.onboard_continue, fontWeight = FontWeight.SemiBold) }
                     } else {
                         Button(
                             onClick = onFinished,
                             enabled = !busy,
                             modifier = Modifier.weight(1.6f).height(52.dp),
-                        ) { Text(stringResource(R.string.onboard_finish), fontWeight = FontWeight.SemiBold) }
+                        ) { TranslatedTextResource(R.string.onboard_finish, fontWeight = FontWeight.SemiBold) }
                     }
                 }
             }
@@ -183,17 +198,26 @@ fun OnboardingScreen(
 }
 
 @Composable
+private fun LanguageStep() {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        TranslatedTextResource(R.string.onboard_language_title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.fillMaxWidth())
+        TranslatedTextResource(R.string.onboard_language_help, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        LanguagePickerUi(showDisclaimer = true)
+    }
+}
+
+@Composable
 private fun NameStep(name: String, onName: (String) -> Unit, color: Long, onColor: (Long) -> Unit, initials: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(stringResource(R.string.onboard_name_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.Start))
+        TranslatedTextResource(R.string.onboard_name_title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.Start))
         Box(Modifier.size(84.dp).clip(CircleShape).background(Color(color)), contentAlignment = Alignment.Center) {
             Text(initials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 30.sp)
         }
         OutlinedTextField(
             name, onName, modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.onboard_name_hint)) }, singleLine = true,
+            label = { TranslatedTextResource(R.string.onboard_name_hint) }, singleLine = true,
         )
-        Text(stringResource(R.string.onboard_name_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Start))
+        TranslatedTextResource(R.string.onboard_name_help, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Start))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
             AvatarPalette.forEach { paletteColor ->
                 val selected = paletteColor == color
@@ -213,20 +237,20 @@ private fun NameStep(name: String, onName: (String) -> Unit, color: Long, onColo
 @Composable
 private fun PaymentStep(provider: PaymentProvider, onProvider: (PaymentProvider) -> Unit, handle: String, onHandle: (String) -> Unit, valid: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(stringResource(R.string.onboard_payment_title), style = MaterialTheme.typography.titleLarge)
-        Text(stringResource(R.string.onboard_payment_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        TranslatedTextResource(R.string.onboard_payment_title, style = MaterialTheme.typography.titleLarge)
+        TranslatedTextResource(R.string.onboard_payment_help, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         PaymentProvider.entries.forEach { option ->
             Row(Modifier.fillMaxWidth().clickable { onProvider(option) }.padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(provider == option, { onProvider(option) })
                 Spacer(Modifier.width(8.dp))
-                Text(providerLabel(option), fontWeight = if (provider == option) FontWeight.SemiBold else FontWeight.Normal)
+                TranslatedText(providerLabel(option), fontWeight = if (provider == option) FontWeight.SemiBold else FontWeight.Normal)
             }
         }
         if (provider != PaymentProvider.CASH) {
             OutlinedTextField(
                 handle, onHandle, modifier = Modifier.fillMaxWidth(),
-                label = { Text(paymentHandleLabel(provider)) },
-                supportingText = { Text("This is shared with your group members so the right person can repay you.") },
+                label = { TranslatedText(paymentHandleLabel(provider)) },
+                supportingText = { TranslatedTextResource(R.string.payment_handle_share_note) },
                 isError = handle.isNotBlank() && !valid,
                 singleLine = true,
             )
@@ -245,24 +269,27 @@ private fun GroupStep(
     onJoinClicked: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(stringResource(R.string.onboard_group_title), style = MaterialTheme.typography.titleLarge)
-        Text(stringResource(R.string.onboard_group_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Button(onOpenCreate, Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboard_group_create), fontWeight = FontWeight.SemiBold) }
+        TranslatedTextResource(R.string.onboard_group_title, style = MaterialTheme.typography.titleLarge)
+        TranslatedTextResource(R.string.onboard_group_help, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Button(onOpenCreate, Modifier.fillMaxWidth()) { TranslatedTextResource(R.string.onboard_group_create, fontWeight = FontWeight.SemiBold) }
         HorizontalDivider()
         OutlinedTextField(
             joinLink, onJoinLink, modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.onboard_group_join_hint)) },
-            supportingText = { if (joinError) Text(stringResource(R.string.onboard_join_invalid), color = MaterialTheme.colorScheme.error) else Text(stringResource(R.string.onboard_group_join)) },
+            label = { TranslatedTextResource(R.string.onboard_group_join_hint) },
+            supportingText = { if (joinError) TranslatedTextResource(R.string.onboard_join_invalid, color = MaterialTheme.colorScheme.error) else TranslatedTextResource(R.string.onboard_group_join) },
             isError = joinError,
             singleLine = true,
         )
-        OutlinedButton(onJoinClicked, Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboard_group_join_button)) }
+        OutlinedButton(onJoinClicked, Modifier.fillMaxWidth()) { TranslatedTextResource(R.string.onboard_group_join_button) }
         val done = createdGroup ?: joinedGroup
         if (done != null) {
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.primaryContainer).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(10.dp))
-                Text(stringResource(if (createdGroup != null) R.string.onboard_group_created else R.string.onboard_group_joined, done), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                Text(
+                    if (createdGroup != null) rememberTranslatedRes(R.string.onboard_group_created, done) else rememberTranslatedRes(R.string.onboard_group_joined),
+                    fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f),
+                )
             }
         }
     }

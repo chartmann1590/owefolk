@@ -1,0 +1,35 @@
+1
+00:00:00,000 --> 00:00:03,936
+Meet Owefolk: shared tabs and clear friendships.
+
+2
+00:00:03,936 --> 00:00:09,384
+Sign in and see what you owe, what you're owed, and the group behind every balance.
+
+3
+00:00:09,384 --> 00:00:15,072
+Scan a receipt privately on-device, then review the merchant and total before saving.
+
+4
+00:00:15,072 --> 00:00:20,856
+Split equally, by exact amounts, or by percentage, always down to the cent.
+
+5
+00:00:20,856 --> 00:00:26,184
+Keep direct payer relationships, or simplify the group into fewer repayments.
+
+6
+00:00:26,184 --> 00:00:31,680
+See who you owe, the exact amount, and their preferred payment provider and handle.
+
+7
+00:00:31,680 --> 00:00:38,136
+Open their payment method. Mark it sent only after paying; the recipient confirms it.
+
+8
+00:00:38,136 --> 00:00:42,840
+Every member stays in sync through a clear, shared activity history.
+
+9
+00:00:42,840 --> 00:00:46,224
+Owefolk keeps fair math from getting awkward.

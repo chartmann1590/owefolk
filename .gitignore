@@ -29,3 +29,5 @@ media/screenshots/payment-options.png
 screenshots/
 .kotlin/
 .playwright-mcp/
+
+play/__pycache__/

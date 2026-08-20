@@ -27,12 +27,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.charles.owefolk.R
 import com.charles.owefolk.data.feedback.BugReport
 import com.charles.owefolk.data.feedback.BugReportRepo
 import com.charles.owefolk.data.feedback.DiagnosticsHelper
 import com.charles.owefolk.data.feedback.GithubApi
 import com.charles.owefolk.data.feedback.GithubComment
 import com.charles.owefolk.data.feedback.ImageHelper
+import com.charles.owefolk.translate.TranslatedTextResource
+import com.charles.owefolk.translate.rememberTranslated
 import com.charles.owefolk.ui.theme.Coral
 import com.charles.owefolk.ui.theme.Mint
 import kotlinx.coroutines.Dispatchers
@@ -63,23 +68,22 @@ fun SupportFeedbackSection(reportRepo: BugReportRepo) {
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Support & Feedback", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            TranslatedTextResource(R.string.feedback_title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             FilledTonalButton(onClick = { showReportDialog = true }) {
-                Icon(Icons.Default.BugReport, null); Spacer(Modifier.width(6.dp)); Text("Report a problem")
+                Icon(Icons.Default.BugReport, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.feedback_report_button)
             }
         }
         if (reports.isEmpty()) {
-            Text("Nothing yet. Report a bug or share feedback and it gets posted to this app's GitHub issue tracker.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            TranslatedTextResource(R.string.feedback_empty, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
         } else {
             reports.forEach { report -> ReportRow(report) { openReport = report } }
         }
         submittedMessage?.let {
-            Text(it, color = Mint, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text(rememberTranslated(it), color = Mint, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(4.dp))
-        Text(
-            "Your report is posted to the project's public GitHub issue tracker. Do not include passwords, keys, medical or financial info, or anything you don't want visible to maintainers. Screenshots may contain private information.",
+        TranslatedTextResource(
+            R.string.feedback_privacy_note,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)).padding(12.dp),
@@ -90,7 +94,7 @@ fun SupportFeedbackSection(reportRepo: BugReportRepo) {
         ReportProblemDialog(
             repo = reportRepo,
             onDismiss = { showReportDialog = false },
-            onSubmitted = { submittedMessage = "Thanks — your report was posted and saved on this device." },
+            onSubmitted = { submittedMessage = context.getString(R.string.feedback_submitted) },
         )
     }
     openReport?.let { report ->
@@ -112,8 +116,8 @@ private fun ReportRow(report: BugReport, onClick: () -> Unit) {
             ) { Icon(Icons.Default.BugReport, null, tint = Mint) }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(report.title.removePrefix("[Feedback] "), fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("#${report.number} • ${prettyDate(report.createdAt)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(rememberTranslated(report.title.removePrefix("[Feedback] ")), fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(rememberTranslated("#${report.number} • ${prettyDate(report.createdAt)}"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             StatusBadge(report.status)
         }
@@ -131,7 +135,7 @@ private fun StatusBadge(status: String) {
         shadowElevation = 0.dp,
     ) {
         Text(
-            if (open) "Open" else "Closed",
+            rememberTranslated(if (open) stringResource(R.string.feedback_status_open) else stringResource(R.string.feedback_status_closed)),
             color = color,
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -166,7 +170,7 @@ private fun ReportProblemDialog(
 
     AlertDialog(
         onDismissRequest = { if (!submitting) onDismiss() },
-        title = { Text("Report a problem") },
+        title = { TranslatedTextResource(R.string.feedback_dialog_title) },
         text = {
             Column(
                 Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
@@ -178,38 +182,38 @@ private fun ReportProblemDialog(
                     tonalElevation = 0.dp,
                 ) {
                     Text(
-                        "Your report will be submitted to this app's GitHub issue tracker. Do not include passwords, private keys, medical, financial, or anything you don't want visible to repository maintainers. If this repo is public, your report may be publicly visible. Screenshots may contain private information.",
+                        rememberTranslated(stringResource(R.string.feedback_dialog_warning)),
                         color = MaterialTheme.colorScheme.onErrorContainer,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(12.dp),
                     )
                 }
-                OutlinedTextField(title, { title = it.take(120) }, Modifier.fillMaxWidth(), label = { Text("Subject *") }, singleLine = true)
-                OutlinedTextField(description, { description = it }, Modifier.fillMaxWidth(), label = { Text("Description *") }, minLines = 4, maxLines = 8)
+                OutlinedTextField(title, { title = it.take(120) }, Modifier.fillMaxWidth(), label = { TranslatedTextResource(R.string.feedback_subject) }, singleLine = true)
+                OutlinedTextField(description, { description = it }, Modifier.fillMaxWidth(), label = { TranslatedTextResource(R.string.feedback_description) }, minLines = 4, maxLines = 8)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = includeDiagnostics, onCheckedChange = { includeDiagnostics = it })
                     Column(Modifier.weight(1f)) {
-                        Text("Include diagnostics")
-                        Text("App version, device, Android version, locale, storage/memory", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TranslatedTextResource(R.string.feedback_include_diagnostics)
+                        TranslatedTextResource(R.string.feedback_diagnostics_desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                OutlinedTextField(name, { name = it.take(80) }, Modifier.fillMaxWidth(), label = { Text("Name (optional)") }, singleLine = true)
-                OutlinedTextField(email, { email = it.take(120) }, Modifier.fillMaxWidth(), label = { Text("Email (optional)") }, singleLine = true)
+                OutlinedTextField(name, { name = it.take(80) }, Modifier.fillMaxWidth(), label = { TranslatedTextResource(R.string.feedback_name_optional) }, singleLine = true)
+                OutlinedTextField(email, { email = it.take(120) }, Modifier.fillMaxWidth(), label = { TranslatedTextResource(R.string.feedback_email_optional) }, singleLine = true)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                         enabled = !submitting && configError == null,
-                    ) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(6.dp)); Text("Attach image") }
+                    ) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.feedback_attach_image) }
                     if (attachedUri != null) {
-                        Text("Image selected", style = MaterialTheme.typography.bodySmall, color = Mint)
-                        TextButton(onClick = { attachedUri = null }, enabled = !submitting) { Text("Remove") }
+                        TranslatedTextResource(R.string.feedback_image_selected, style = MaterialTheme.typography.bodySmall, color = Mint)
+                        TextButton(onClick = { attachedUri = null }, enabled = !submitting) { TranslatedTextResource(R.string.feedback_remove) }
                     }
                 }
                 attachedUri?.let { AttachmentPreview(it) }
                 if (configError != null) {
                     Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = .6f), shape = RoundedCornerShape(12.dp)) {
                         Text(
-                            "Feedback isn't configured in this build. $configError",
+                            rememberTranslated(stringResource(R.string.feedback_not_configured, configError)),
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(10.dp),
@@ -217,7 +221,7 @@ private fun ReportProblemDialog(
                     }
                 }
                 error?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(rememberTranslated(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
             }
         },
@@ -244,10 +248,10 @@ private fun ReportProblemDialog(
                                 "## Attachment\n\n![Screenshot]($downloadUrl)\n\n"
                             } else ""
                             val body = buildString {
-                                append("## Description\n\n").append(capturedDesc.ifBlank { "No description provided." })
+                                append("## Description\n\n").append(capturedDesc.ifBlank { context.getString(R.string.feedback_no_description) })
                                 append("\n\n## Contact Info\n\n")
-                                append("- Name: ").append(capturedName.ifBlank { "Not provided" }).append("\n")
-                                append("- Email: ").append(capturedEmail.ifBlank { "Not provided" }).append("\n")
+                                append("- Name: ").append(capturedName.ifBlank { context.getString(R.string.feedback_not_provided) }).append("\n")
+                                append("- Email: ").append(capturedEmail.ifBlank { context.getString(R.string.feedback_not_provided) }).append("\n")
                                 if (attachmentMd.isNotBlank()) append("\n").append(attachmentMd)
                                 if (capturedDiagnostics != null) append("\n").append(capturedDiagnostics)
                             }
@@ -264,7 +268,7 @@ private fun ReportProblemDialog(
                             onSubmitted()
                             onDismiss()
                         } catch (t: Throwable) {
-                            error = "Could not submit: ${t.message ?: "Unknown error"}"
+                            error = context.getString(R.string.feedback_submit_failed, t.message ?: context.getString(R.string.feedback_not_provided))
                         } finally {
                             submitting = false
                         }
@@ -273,10 +277,10 @@ private fun ReportProblemDialog(
             ) {
                 if (submitting) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 else Icon(Icons.AutoMirrored.Filled.Send, null)
-                Spacer(Modifier.width(8.dp)); Text("Submit")
+                Spacer(Modifier.width(8.dp)); TranslatedTextResource(R.string.feedback_submit)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !submitting) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss, enabled = !submitting) { TranslatedTextResource(R.string.feedback_cancel) } },
     )
 }
 
@@ -320,13 +324,13 @@ private fun IssueDetailsDialog(
                 report.copy(status = liveIssue.state, htmlUrl = liveIssue.htmlUrl, title = liveIssue.title),
             )
         } catch (t: Throwable) {
-            loadError = "Couldn't fetch the latest issue state: ${t.message ?: "Unknown error"}"
+            loadError = context.getString(R.string.feedback_issue_state_failed, t.message ?: context.getString(R.string.feedback_not_provided))
         }
         try {
             comments = GithubApi.instance.listComments(report.number)
         } catch (t: Throwable) {
             comments = emptyList()
-            val commentsError = "Couldn't load comments: ${t.message ?: "Unknown error"}"
+            val commentsError = context.getString(R.string.feedback_comments_failed, t.message ?: context.getString(R.string.feedback_not_provided))
             loadError = listOfNotNull(loadError, commentsError).joinToString("\n")
         } finally {
             loading = false
@@ -337,8 +341,8 @@ private fun IssueDetailsDialog(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("Issue #${report.number}", style = MaterialTheme.typography.titleMedium)
-                Text(report.title.removePrefix("[Feedback] "), style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(rememberTranslated(stringResource(R.string.feedback_issue_title, report.number)), style = MaterialTheme.typography.titleMedium)
+                Text(rememberTranslated(report.title.removePrefix("[Feedback] ")), style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         },
         text = {
@@ -354,32 +358,32 @@ private fun IssueDetailsDialog(
                     (issue?.htmlUrl ?: report.htmlUrl).takeIf(String::isNotBlank)?.let { url ->
                         TextButton(onClick = {
                             runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                        }) { Text("Open on GitHub") }
+                        }) { TranslatedTextResource(R.string.feedback_open_github) }
                     }
                 }
                 if (loading) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp) }
-                loadError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                loadError?.let { Text(rememberTranslated(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 if (comments.isNotEmpty()) {
-                    Text("Comments", style = MaterialTheme.typography.titleSmall)
+                    TranslatedTextResource(R.string.feedback_comments, style = MaterialTheme.typography.titleSmall)
                     comments.forEach { CommentRow(it) }
                 } else if (!loading) {
-                    Text("No comments yet.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                    TranslatedTextResource(R.string.feedback_no_comments, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
                 HorizontalDivider(Modifier.padding(vertical = 4.dp))
-                Text("Reply", style = MaterialTheme.typography.titleSmall)
-                OutlinedTextField(reply, { reply = it }, Modifier.fillMaxWidth(), label = { Text("Your reply") }, minLines = 2, maxLines = 6)
+                TranslatedTextResource(R.string.feedback_reply, style = MaterialTheme.typography.titleSmall)
+                OutlinedTextField(reply, { reply = it }, Modifier.fillMaxWidth(), label = { TranslatedTextResource(R.string.feedback_reply_label) }, minLines = 2, maxLines = 6)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                         enabled = !posting,
-                    ) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(6.dp)); Text("Attach") }
+                    ) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(6.dp)); TranslatedTextResource(R.string.feedback_attach) }
                     if (replyUri != null) {
-                        Text("Image selected", style = MaterialTheme.typography.bodySmall, color = Mint)
-                        TextButton(onClick = { replyUri = null }, enabled = !posting) { Text("Remove") }
+                        TranslatedTextResource(R.string.feedback_image_selected, style = MaterialTheme.typography.bodySmall, color = Mint)
+                        TextButton(onClick = { replyUri = null }, enabled = !posting) { TranslatedTextResource(R.string.feedback_remove) }
                     }
                 }
                 replyUri?.let { AttachmentPreview(it) }
-                postError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                postError?.let { Text(rememberTranslated(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
@@ -405,7 +409,7 @@ private fun IssueDetailsDialog(
                             replyUri = null
                             refreshKey++
                         } catch (t: Throwable) {
-                            postError = "Reply failed: ${t.message ?: "Unknown error"}"
+                            postError = context.getString(R.string.feedback_reply_failed, t.message ?: context.getString(R.string.feedback_not_provided))
                         } finally {
                             posting = false
                         }
@@ -414,10 +418,10 @@ private fun IssueDetailsDialog(
             ) {
                 if (posting) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 else Icon(Icons.AutoMirrored.Filled.Comment, null)
-                Spacer(Modifier.width(8.dp)); Text("Post reply")
+                Spacer(Modifier.width(8.dp)); TranslatedTextResource(R.string.feedback_post_reply)
             }
         },
-        dismissButton = { TextButton(onDismiss) { Text("Close") } },
+        dismissButton = { TextButton(onDismiss) { TranslatedTextResource(R.string.feedback_close) } },
     )
 }
 
@@ -430,7 +434,7 @@ private fun CommentRow(comment: GithubComment) {
                 Spacer(Modifier.weight(1f))
                 Text(prettyDate(comment.createdAt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(renderCommentBody(comment.body), style = MaterialTheme.typography.bodyMedium)
+            Text(rememberTranslated(renderCommentBody(comment.body)), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -447,14 +451,14 @@ private fun AttachmentPreview(uri: Uri) {
     bitmap?.let {
         Image(
             bitmap = it.asImageBitmap(),
-            contentDescription = "Selected attachment preview",
+            contentDescription = stringResource(R.string.feedback_attachment_preview),
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(16.dp)),
         )
     }
     if (failed) {
-        Text(
-            "Preview unavailable. Remove this image and choose another.",
+        TranslatedTextResource(
+            R.string.feedback_preview_unavailable,
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall,
         )

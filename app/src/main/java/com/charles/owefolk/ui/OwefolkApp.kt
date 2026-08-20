@@ -25,7 +25,16 @@ import com.charles.owefolk.data.FirebaseOwefolkRepository
 import com.charles.owefolk.observability.Telemetry
 import android.content.Context
 import com.charles.owefolk.R
-import androidx.compose.ui.res.stringResource
+import com.charles.owefolk.translate.LanguagePickerUi
+import com.charles.owefolk.translate.LocalTranslation
+import com.charles.owefolk.translate.TranslatedText
+import com.charles.owefolk.translate.TranslatedTextResource
+import com.charles.owefolk.translate.TranslationController
+import com.charles.owefolk.translate.TranslationDisclaimerBar
+import com.charles.owefolk.translate.TranslationManager
+import com.charles.owefolk.translate.dismissTranslationDisclaimer
+import com.charles.owefolk.translate.isTranslationDisclaimerDismissed
+import kotlinx.coroutines.launch
 
 private enum class RootDestination(val route: String, val label: String, val icon: ImageVector) {
     HOME("home", "Home", Icons.Default.Home),
@@ -38,6 +47,14 @@ private const val PRIVACY_ROUTE = "privacy"
 
 @Composable
 fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(FirebaseOwefolkRepository()))) {
+    val controller = remember { TranslationController(TranslationManager.state, TranslationManager::translate) }
+    CompositionLocalProvider(LocalTranslation provides controller) {
+        OwefolkAppContent(viewModel)
+    }
+}
+
+@Composable
+private fun OwefolkAppContent(viewModel: AppViewModel) {
     var signedIn by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
     DisposableEffect(Unit) {
         val listener = FirebaseAuth.AuthStateListener { signedIn = it.currentUser != null }
@@ -46,6 +63,9 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
     }
     val context = LocalContext.current
     var showConsent by remember { mutableStateOf(false) }
+    val appScope = rememberCoroutineScope()
+    val translationState by TranslationManager.state.collectAsState()
+    var disclaimerDismissed by remember { mutableStateOf(isTranslationDisclaimerDismissed(context)) }
 
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("telemetry", Context.MODE_PRIVATE)
@@ -57,12 +77,12 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
         AlertDialog(
             onDismissRequest = { showConsent = false },
             icon = { Icon(Icons.Default.Shield, null) },
-            title = { Text(stringResource(R.string.consent_title)) },
+            title = { TranslatedTextResource(R.string.consent_title) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.consent_text))
-                    Text(stringResource(R.string.consent_no_personal), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(stringResource(R.string.consent_change_anytime), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TranslatedTextResource(R.string.consent_text)
+                    TranslatedTextResource(R.string.consent_no_personal, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TranslatedTextResource(R.string.consent_change_anytime, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             confirmButton = {
@@ -70,14 +90,14 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                     Telemetry.setCollectionEnabled(context, true)
                     context.getSharedPreferences("telemetry", Context.MODE_PRIVATE).edit().putBoolean("consent_seen", true).apply()
                     showConsent = false
-                }) { Text(stringResource(R.string.consent_allow)) }
+                }) { TranslatedTextResource(R.string.consent_allow) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     Telemetry.setCollectionEnabled(context, false)
                     context.getSharedPreferences("telemetry", Context.MODE_PRIVATE).edit().putBoolean("consent_seen", true).apply()
                     showConsent = false
-                }) { Text(stringResource(R.string.consent_decline)) }
+                }) { TranslatedTextResource(R.string.consent_decline) }
             },
         )
     }
@@ -92,10 +112,14 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddExpense by remember { mutableStateOf(false) }
     var showCreateGroup by remember { mutableStateOf(false) }
+    var showLanguagePicker by remember { mutableStateOf(false) }
     var selectedGroup by remember { mutableStateOf<Group?>(null) }
 
     LaunchedEffect(state.message) {
-        state.message?.let { snackbarHostState.showSnackbar(it); viewModel.clearMessage() }
+        state.message?.let {
+            snackbarHostState.showSnackbar(TranslationManager.translate(it) ?: it)
+            viewModel.clearMessage()
+        }
     }
 
     if (dashboard == null) {
@@ -131,8 +155,14 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
     val privacyOptionsRequired by AdsManager.privacyOptionsRequired.collectAsState()
     val premiumState by com.charles.owefolk.premium.PremiumManager.state.collectAsState()
     val isPremium = premiumState.isSubscribed || dashboard.user.premiumActive
+    val showTranslationBar = translationState.active && !disclaimerDismissed
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            if (showTranslationBar) {
+                TranslationDisclaimerBar(onDismiss = { disclaimerDismissed = true; dismissTranslationDisclaimer(context) })
+            }
+        },
         bottomBar = {
             Column {
                 if (currentRoute in RootDestination.entries.map { it.route } && !isPremium) AdMobBanner()
@@ -149,7 +179,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                                     }
                                 },
                                 icon = { Icon(destination.icon, destination.label) },
-                                label = { Text(destination.label) },
+                                label = { TranslatedText(destination.label) },
                             )
                         }
                     }
@@ -161,7 +191,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                 ExtendedFloatingActionButton(
                     onClick = { showAddExpense = true },
                     icon = { Icon(Icons.Default.Add, null) },
-                    text = { Text(stringResource(R.string.add_expense_save)) },
+                    text = { TranslatedTextResource(R.string.add_expense_save) },
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary,
                 )
@@ -185,6 +215,7 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
                     showAdPrivacyOptions = privacyOptionsRequired,
                     onAdPrivacyOptions = { (context as? Activity)?.let(AdsManager::showPrivacyOptions) },
                     onOpenPrivacyPolicy = { navController.navigate(PRIVACY_ROUTE) },
+                    onLanguageSettings = { showLanguagePicker = true },
                     premiumState = premiumState,
                     onUpgradePremium = { (context as? Activity)?.let(com.charles.owefolk.premium.PremiumManager::launch) },
                     onRestorePremium = { com.charles.owefolk.premium.PremiumManager.refreshSubscriptions() })
@@ -195,6 +226,18 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
         }
     }
 
+    if (showLanguagePicker) {
+        AlertDialog(
+            onDismissRequest = { showLanguagePicker = false },
+            title = { TranslatedTextResource(R.string.language_dialog_title) },
+            text = {
+                LanguagePickerUi(showDisclaimer = true)
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguagePicker = false; disclaimerDismissed = false }) { TranslatedTextResource(R.string.translation_dismiss) }
+            },
+        )
+    }
     if (showAddExpense) {
         AddExpenseSheet(dashboard.groups, state.busy, onDismiss = { showAddExpense = false }) {
             viewModel.addExpense(it) {
@@ -214,7 +257,11 @@ fun OwefolkApp(viewModel: AppViewModel = viewModel(factory = AppViewModel.Factor
             group, dashboard.user, onDismiss = { selectedGroup = null }, onReminder = { viewModel.sendReminder(group.id) },
             onInvite = {
                 viewModel.createInvite(group.id) { url ->
-                    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, context.getString(R.string.invite_text, group.name, url)) }, "Invite friends"))
+                    appScope.launch {
+                        val source = context.getString(R.string.invite_text, group.name, url)
+                        val text = TranslationManager.translate(source) ?: source
+                        context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text) }, context.getString(R.string.group_detail_invite)))
+                    }
                 }
             },
             onRepaymentModeChange = { simplify -> viewModel.updateRepaymentMode(group.id, simplify) },

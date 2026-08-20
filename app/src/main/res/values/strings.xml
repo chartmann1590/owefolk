@@ -150,6 +150,8 @@
     <!-- Onboarding -->
     <string name="onboard_title">Let\'s set you up</string>
     <string name="onboard_subtitle">Two quick things, then you\'re ready to split.</string>
+    <string name="onboard_language_title">Choose your language</string>
+    <string name="onboard_language_help">Applied everywhere in Owefolk. You can change it anytime in Profile.</string>
     <string name="onboard_step_label">%1$d of %2$d</string>
     <string name="onboard_name_title">What should friends call you?</string>
     <string name="onboard_name_hint">Your name</string>
@@ -217,6 +219,8 @@
 
     <!-- Notifications -->
     <string name="notification_channel">Owefolk updates</string>
+    <string name="notification_fallback_title">Owefolk</string>
+    <string name="notification_fallback_body">There is an update in your group</string>
 
     <!-- Accessibility -->
     <string name="a11y_net_balance">Net balance %s</string>
@@ -230,4 +234,71 @@
     <string name="minutes_ago">%dm</string>
     <string name="hours_ago">%dh</string>
     <string name="days_ago">%dd</string>
+
+    <!-- Translation -->
+    <string name="translation_disclaimer">Translations are generated on-device by Google ML Kit and may not always be accurate.</string>
+    <string name="translation_device_only">Translations run entirely on your device and never leave it.</string>
+    <string name="translation_auto_label">Auto-translated</string>
+    <string name="translation_dismiss">Dismiss</string>
+    <string name="translation_downloading">Downloading translation model…</string>
+    <string name="translation_download_error">Couldn\'t download the translation model. Check your connection and try again.</string>
+    <string name="translation_retry">Retry</string>
+    <string name="language_settings">Display language</string>
+    <string name="language_settings_desc">Translate the app on your device</string>
+    <string name="language_dialog_title">Display language</string>
+    <string name="language_device_only_note">Your language choice is stored only on this device.</string>
+
+    <!-- Group cards -->
+    <string name="group_card_owed">You\'re owed %1$s</string>
+    <string name="group_card_owe">You owe %1$s</string>
+    <string name="group_card_even">Your net is even • details inside</string>
+    <string name="activity_recent">Recent activity</string>
+
+    <!-- Split modes -->
+    <string name="split_mode_equal">Equal</string>
+    <string name="split_mode_exact">Exact</string>
+    <string name="split_mode_percent">Percent</string>
+
+    <!-- Shared payment handle note -->
+    <string name="payment_handle_share_note">This is shared with your group members so the right person can repay you.</string>
+
+    <!-- Feedback / Support -->
+    <string name="feedback_title">Support and feedback</string>
+    <string name="feedback_report_button">Report a problem</string>
+    <string name="feedback_empty">Nothing yet. Report a bug or share feedback and it gets posted to this app\'s GitHub issue tracker.</string>
+    <string name="feedback_privacy_note">Your report is posted to the project\'s public GitHub issue tracker. Do not include passwords, keys, medical or financial info, or anything you don\'t want visible to maintainers. Screenshots may contain private information.</string>
+    <string name="feedback_submitted">Thanks — your report was posted and saved on this device.</string>
+    <string name="feedback_status_open">Open</string>
+    <string name="feedback_status_closed">Closed</string>
+    <string name="feedback_dialog_title">Report a problem</string>
+    <string name="feedback_dialog_warning">Your report will be submitted to this app\'s GitHub issue tracker. Do not include passwords, private keys, medical, financial, or anything you don\'t want visible to repository maintainers. If this repo is public, your report may be publicly visible. Screenshots may contain private information.</string>
+    <string name="feedback_subject">Subject *</string>
+    <string name="feedback_description">Description *</string>
+    <string name="feedback_include_diagnostics">Include diagnostics</string>
+    <string name="feedback_diagnostics_desc">App version, device, Android version, locale, storage/memory</string>
+    <string name="feedback_name_optional">Name (optional)</string>
+    <string name="feedback_email_optional">Email (optional)</string>
+    <string name="feedback_attach_image">Attach image</string>
+    <string name="feedback_image_selected">Image selected</string>
+    <string name="feedback_remove">Remove</string>
+    <string name="feedback_not_configured">Feedback isn\'t configured in this build. %s</string>
+    <string name="feedback_submit">Submit</string>
+    <string name="feedback_cancel">Cancel</string>
+    <string name="feedback_no_description">No description provided.</string>
+    <string name="feedback_not_provided">Not provided</string>
+    <string name="feedback_submit_failed">Could not submit: %s</string>
+    <string name="feedback_issue_state_failed">Couldn\'t fetch the latest issue state: %s</string>
+    <string name="feedback_comments_failed">Couldn\'t load comments: %s</string>
+    <string name="feedback_issue_title">Issue #%d</string>
+    <string name="feedback_open_github">Open on GitHub</string>
+    <string name="feedback_comments">Comments</string>
+    <string name="feedback_no_comments">No comments yet.</string>
+    <string name="feedback_reply">Reply</string>
+    <string name="feedback_reply_label">Your reply</string>
+    <string name="feedback_attach">Attach</string>
+    <string name="feedback_reply_failed">Reply failed: %s</string>
+    <string name="feedback_post_reply">Post reply</string>
+    <string name="feedback_close">Close</string>
+    <string name="feedback_attachment_preview">Selected attachment preview</string>
+    <string name="feedback_preview_unavailable">Preview unavailable. Remove this image and choose another.</string>
 </resources>

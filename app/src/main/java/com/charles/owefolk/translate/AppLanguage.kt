@@ -1,0 +1,71 @@
+package com.charles.owefolk.translate
+
+import com.google.mlkit.nl.translate.TranslateLanguage
+
+data class AppLanguage(val tag: String, val nativeName: String, val translate: String) {
+    companion object {
+        val OFF = AppLanguage("", "English (app default)", TranslateLanguage.ENGLISH)
+        val ALL = listOf(
+            AppLanguage("af", "Afrikaans", TranslateLanguage.AFRIKAANS),
+            AppLanguage("sq", "shqip", TranslateLanguage.ALBANIAN),
+            AppLanguage("ar", "العربية", TranslateLanguage.ARABIC),
+            AppLanguage("be", "беларуская", TranslateLanguage.BELARUSIAN),
+            AppLanguage("bg", "български", TranslateLanguage.BULGARIAN),
+            AppLanguage("bn", "বাংলা", TranslateLanguage.BENGALI),
+            AppLanguage("ca", "català", TranslateLanguage.CATALAN),
+            AppLanguage("cs", "čeština", TranslateLanguage.CZECH),
+            AppLanguage("cy", "Cymraeg", TranslateLanguage.WELSH),
+            AppLanguage("da", "dansk", TranslateLanguage.DANISH),
+            AppLanguage("de", "Deutsch", TranslateLanguage.GERMAN),
+            AppLanguage("el", "Ελληνικά", TranslateLanguage.GREEK),
+            AppLanguage("eo", "Esperanto", TranslateLanguage.ESPERANTO),
+            AppLanguage("es", "Español", TranslateLanguage.SPANISH),
+            AppLanguage("et", "eesti", TranslateLanguage.ESTONIAN),
+            AppLanguage("fa", "فارسی", TranslateLanguage.PERSIAN),
+            AppLanguage("fi", "suomi", TranslateLanguage.FINNISH),
+            AppLanguage("fr", "Français", TranslateLanguage.FRENCH),
+            AppLanguage("ga", "Gaeilge", TranslateLanguage.IRISH),
+            AppLanguage("gl", "galego", TranslateLanguage.GALICIAN),
+            AppLanguage("gu", "ગુજરાતી", TranslateLanguage.GUJARATI),
+            AppLanguage("he", "עברית", TranslateLanguage.HEBREW),
+            AppLanguage("hi", "हिन्दी", TranslateLanguage.HINDI),
+            AppLanguage("hr", "hrvatski", TranslateLanguage.CROATIAN),
+            AppLanguage("ht", "Kreyòl ayisyen", TranslateLanguage.HAITIAN_CREOLE),
+            AppLanguage("hu", "magyar", TranslateLanguage.HUNGARIAN),
+            AppLanguage("id", "Indonesia", TranslateLanguage.INDONESIAN),
+            AppLanguage("is", "íslenska", TranslateLanguage.ICELANDIC),
+            AppLanguage("it", "Italiano", TranslateLanguage.ITALIAN),
+            AppLanguage("ja", "日本語", TranslateLanguage.JAPANESE),
+            AppLanguage("ka", "ქართული", TranslateLanguage.GEORGIAN),
+            AppLanguage("kn", "ಕನ್ನಡ", TranslateLanguage.KANNADA),
+            AppLanguage("ko", "한국어", TranslateLanguage.KOREAN),
+            AppLanguage("lt", "lietuvių", TranslateLanguage.LITHUANIAN),
+            AppLanguage("lv", "latviešu", TranslateLanguage.LATVIAN),
+            AppLanguage("mk", "македонски", TranslateLanguage.MACEDONIAN),
+            AppLanguage("ms", "Melayu", TranslateLanguage.MALAY),
+            AppLanguage("mt", "Malti", TranslateLanguage.MALTESE),
+            AppLanguage("mr", "मराठी", TranslateLanguage.MARATHI),
+            AppLanguage("nl", "Nederlands", TranslateLanguage.DUTCH),
+            AppLanguage("no", "norsk", TranslateLanguage.NORWEGIAN),
+            AppLanguage("pl", "polski", TranslateLanguage.POLISH),
+            AppLanguage("pt", "Português", TranslateLanguage.PORTUGUESE),
+            AppLanguage("ro", "română", TranslateLanguage.ROMANIAN),
+            AppLanguage("ru", "Русский", TranslateLanguage.RUSSIAN),
+            AppLanguage("sk", "slovenčina", TranslateLanguage.SLOVAK),
+            AppLanguage("sl", "slovenščina", TranslateLanguage.SLOVENIAN),
+            AppLanguage("sv", "svenska", TranslateLanguage.SWEDISH),
+            AppLanguage("sw", "Kiswahili", TranslateLanguage.SWAHILI),
+            AppLanguage("tl", "Tagalog", TranslateLanguage.TAGALOG),
+            AppLanguage("ta", "தமிழ்", TranslateLanguage.TAMIL),
+            AppLanguage("te", "తెలుగు", TranslateLanguage.TELUGU),
+            AppLanguage("th", "ไทย", TranslateLanguage.THAI),
+            AppLanguage("tr", "Türkçe", TranslateLanguage.TURKISH),
+            AppLanguage("uk", "українська", TranslateLanguage.UKRAINIAN),
+            AppLanguage("ur", "اردو", TranslateLanguage.URDU),
+            AppLanguage("vi", "Tiếng Việt", TranslateLanguage.VIETNAMESE),
+            AppLanguage("zh", "简体中文", TranslateLanguage.CHINESE),
+        )
+
+        fun byTag(tag: String?): AppLanguage? = ALL.firstOrNull { it.tag == tag }
+    }
+}
