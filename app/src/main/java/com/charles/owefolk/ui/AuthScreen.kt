@@ -144,7 +144,7 @@ fun AuthScreen() {
                             }
                             },
                             modifier = Modifier.weight(1f).height(52.dp),
-                            enabled = email.contains('@') && password.length >= 8 && !busy,
+                            enabled = email.contains('@') && password.length >= 6 && !busy,
                         ) { Text(rememberTranslated(stringResource(R.string.auth_create_account))) }
                         Button(
                             onClick = {
@@ -156,7 +156,7 @@ fun AuthScreen() {
                             }
                             },
                             modifier = Modifier.weight(1f).height(52.dp),
-                            enabled = email.contains('@') && password.length >= 8 && !busy,
+                            enabled = email.contains('@') && password.length >= 6 && !busy,
                         ) { Text(rememberTranslated(stringResource(R.string.auth_sign_in))) }
                     }
                     message?.let { Text(rememberTranslated(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
@@ -201,9 +201,13 @@ private suspend fun createAccountWithEmail(email: String, password: String) {
 
 private suspend fun createOrUpdateProfile(user: com.google.firebase.auth.FirebaseUser) {
     val profile = FirebaseFirestore.getInstance().collection("users").document(user.uid)
-    if (profile.get().await().exists()) return
-    val name = user.displayName ?: "Friend"
+    val snapshot = profile.get().await()
+    if (snapshot.exists() && snapshot.getString("name") != null && snapshot.getString("initials") != null) return
+    val name = user.displayName?.takeIf { it.isNotBlank() } ?: snapshot.getString("name") ?: "Friend"
     val initials = name.split(' ').filter(String::isNotBlank).take(2).joinToString("") { it.first().uppercase() }.ifBlank { "OF" }
-    profile.set(mapOf("name" to name, "initials" to initials, "email" to user.email, "color" to 0xFF5B4BD8,
-        "preferredProvider" to "VENMO", "createdAt" to FieldValue.serverTimestamp())).await()
+    val data = mutableMapOf<String, Any>("name" to name, "initials" to initials, "color" to 0xFF5B4BD8,
+        "preferredProvider" to (snapshot.getString("preferredProvider") ?: "VENMO"), "onboarded" to true)
+    user.email?.let { data["email"] = it }
+    if (!snapshot.exists()) data["createdAt"] = FieldValue.serverTimestamp()
+    profile.set(data, com.google.firebase.firestore.SetOptions.merge()).await()
 }
