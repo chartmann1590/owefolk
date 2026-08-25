@@ -83,7 +83,12 @@ def main():
 
     if args.commit:
         try:
-            res = service.edits().commit(packageName=PACKAGE, editId=eid).execute()
+            # For draft releases, Play now requires changesNotSentForReview=true
+            # otherwise you must send for review via the Console UI.
+            is_draft = args.status == "draft"
+            res = service.edits().commit(
+                packageName=PACKAGE, editId=eid, changesNotSentForReview=is_draft
+            ).execute()
             print("COMMITTED. Edit id:", eid)
         except errors.HttpError as e:
             print("COMMIT FAILED:", e.resp.status, e.content.decode()[:1500])
