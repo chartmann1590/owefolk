@@ -24,15 +24,10 @@ import java.util.UUID
 
 class FirebaseOwefolkRepository : OwefolkRepository {
     private val auth by lazy { FirebaseAuth.getInstance() }
-    private val db by lazy {
-        FirebaseFirestore.getInstance().also { firestore ->
-            val settings = com.google.firebase.firestore.FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .setCacheSizeBytes(com.google.firebase.firestore.FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
-                .build()
-            firestore.firestoreSettings = settings
-        }
-    }
+    // Firestore enables disk persistence by default on Android. Do not mutate its settings
+    // here: another app component may already have used the singleton by the time this lazy
+    // property is reached, at which point setFirestoreSettings throws and crashes startup.
+    private val db by lazy { FirebaseFirestore.getInstance() }
 
     override val dashboard: Flow<Dashboard> = callbackFlow {
         val registrations = mutableListOf<ListenerRegistration>()

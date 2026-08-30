@@ -18,12 +18,19 @@ import com.charles.owefolk.notifications.OwefolkMessagingService
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AdsManager.initialize(this)
-        com.charles.owefolk.premium.PremiumManager.start(this)
         enableEdgeToEdge()
         handleDeepLink(intent)
-        requestNotificationPermission()
         setContent { OwefolkTheme { OwefolkApp() } }
+
+        // Consent and runtime-permission flows need Activity's content view. Starting either
+        // before setContent can crash on fast devices when their dialog is shown immediately.
+        window.decorView.post {
+            if (!isFinishing && !isDestroyed) {
+                AdsManager.initialize(this)
+                com.charles.owefolk.premium.PremiumManager.start(this)
+                requestNotificationPermission()
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
