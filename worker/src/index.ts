@@ -1,6 +1,6 @@
 import {createRemoteJWKSet, jwtVerify} from "jose";
 
-interface Env {
+export interface Env {
   DB: D1Database;
   DELETION_ENCRYPTION_KEY: string;
   ENVIRONMENT: string;
