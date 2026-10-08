@@ -7,6 +7,7 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesResponseListener
@@ -40,7 +41,10 @@ object PremiumManager {
         if (billingClient != null) return
         val client = BillingClient.newBuilder(context)
             .setListener(::onPurchasesUpdated)
-            .enablePendingPurchases()
+            .enablePendingPurchases(
+                PendingPurchasesParams.newBuilder().enableOneTimeProducts().build(),
+            )
+            .enableAutoServiceReconnection()
             .build()
         billingClient = client
         client.startConnection(object : BillingClientStateListener {
@@ -108,8 +112,8 @@ object PremiumManager {
                 ),
             )
             .build()
-        client.queryProductDetailsAsync(params) { _, detailsList ->
-            val details = detailsList.firstOrNull()
+        client.queryProductDetailsAsync(params) { _, queryResult ->
+            val details = queryResult.productDetailsList.firstOrNull()
             productDetails = details
             val price = details
                 ?.subscriptionOfferDetails
