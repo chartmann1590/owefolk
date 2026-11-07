@@ -29,8 +29,9 @@ wait 1
 tap (?i)^continue$
 wait 3
 shot 02d-payment
-tap (?i)^cash$
-wait 1
+scrollto (?i)^cash$
+wait 2
+shot 02d2-cash
 tap (?i)^continue$
 wait 3
 shot 02e-group
