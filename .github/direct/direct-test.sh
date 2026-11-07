@@ -13,7 +13,7 @@ tapre(){ dump; xy=$(perl -se 'local $/; $_=<STDIN>; my @st; while(/<(\/?)node\b(
 shot(){ adb exec-out screencap -p > "$OUT/$LABEL-$1.png"; dump; cp "$OUT/ui.xml" "$OUT/$LABEL-$1.ui.xml"; nodes > "$OUT/$LABEL-$1.txt"; log "shot $1 (fg: $(adb shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity' | tr -s ' '))"; }
 adb logcat -c || true
 WM=$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1); WM_W=${WM%x*}; WM_H=${WM#*x}; log "screen ${WM_W}x${WM_H}"
-X50=$((WM_W/2)); Y85=$((WM_H*85/100)); Y30=$((WM_H*30/100)); X90=$((WM_W*9/10)); X10=$((WM_W/10)); Y50=$((WM_H/2))
+X50=$((WM_W/2)); Y85=$((WM_H*85/100)); Y30=$((WM_H*30/100)); X90=$((WM_W*9/10)); X10=$((WM_W/10)); Y50=$((WM_H/2)); Y70=$((WM_H*70/100)); Y25=$((WM_H*25/100))  # scroll swipes start above a bottom nav bar
 log "install $APK"
 adb install -r -g "$APK" 2>&1 | tee -a "$OUT/steps.log"
 adb shell settings put global window_animation_scale 0 </dev/null >/dev/null 2>&1 || true
@@ -29,13 +29,13 @@ while IFS= read -r -u 3 line || [ -n "$line" ]; do
     tap) tapre "$arg" || true; sleep 2;;
     taploop) for i in 1 2 3 4 5 6 7 8; do tapre "$arg" || break; sleep 2; done;;
     adclose) for i in 1 2 3 4; do dump; if grep -qiE 'Test Ad|AdActivity|interstitial|com.google.android.gms.ads' "$OUT/ui.xml" || adb shell dumpsys activity activities | grep -m1 -E 'topResumedActivity|mResumedActivity' | grep -qi 'AdActivity'; then log "ad on screen (try $i)"; sleep 8; tapre "(?i)^(close|close ad|skip ad|skip video|dismiss|interstitial close button)$" || adb shell input tap $((WM_W*96/100)) $((WM_H*3/100)); sleep 3; else break; fi; done;;
-    scrollto) found=0; for i in 1 2 3 4 5 6 7 8 9 10 11 12; do if tapre "$arg"; then found=1; break; fi; adb shell input swipe $X50 $Y85 $X50 $Y30 400; sleep 1; done; [ $found = 0 ] && log "scrollto: never found /$arg/"; sleep 2;;
+    scrollto) found=0; for i in 1 2 3 4 5 6 7 8 9 10 11 12; do if tapre "$arg"; then found=1; break; fi; adb shell input swipe $X50 $Y70 $X50 $Y25 500; sleep 1; done; [ $found = 0 ] && log "scrollto: never found /$arg/"; sleep 2;;
     tapxy) set -- $arg; adb shell input tap $((WM_W*$1/1000)) $((WM_H*$2/1000)); log "tapxy permille $arg"; sleep 2;;
     type) adb shell input text "$arg"; log "type"; sleep 1;;
     back) adb shell input keyevent 4; log "back"; sleep 2;;
     home) adb shell input keyevent 3; log "home"; sleep 1;;
-    swipeup) adb shell input swipe $X50 $Y85 $X50 $Y30 300; sleep 1;;
-    swipedown) adb shell input swipe $X50 $Y30 $X50 $Y85 300; sleep 1;;
+    swipeup) adb shell input swipe $X50 $Y70 $X50 $Y25 400; sleep 1;;
+    swipedown) adb shell input swipe $X50 $Y25 $X50 $Y70 400; sleep 1;;
     swipeleft) adb shell input swipe $X90 $Y50 $X10 $Y50 250; sleep 1;;
     am) adb shell am $arg; log "am $arg"; sleep 3;;
     sh) adb shell "$arg" 2>&1 | tee -a "$OUT/steps.log";;

@@ -4,11 +4,13 @@ shot 01-launch
 taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it)$
 wait 3
 shot 02-auth
-tap (?i)^email$
+tap (?i)^email address$
+wait 1
 type direct-ci-owefolk@mail.tab.bot
 back
 wait 1
 tap (?i)^password$
+wait 1
 type DirectCi2026test
 back
 wait 1
