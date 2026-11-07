@@ -20,6 +20,15 @@ wait 10
 tap (?i)^sign in$
 wait 10
 taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it|skip|continue|done|next)$
+shot 02c-setup
+tap (?i)^your name$
+wait 1
+type Alex
+back
+wait 1
+taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it|skip|continue|done|next)$
+wait 3
+taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it|skip|continue|done|next)$
 adclose
 shot 03-home
 tap (?i)^groups$
