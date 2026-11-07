@@ -26,9 +26,18 @@ wait 1
 type Alex
 back
 wait 1
-taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it|skip|continue|done|next)$
+tap (?i)^continue$
 wait 3
-taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it|skip|continue|done|next)$
+shot 02d-payment
+tap (?i)^cash$
+wait 1
+tap (?i)^continue$
+wait 3
+shot 02e-group
+tap (?i)^skip for now$
+wait 3
+taploop (?i)^(finish|continue|done|got it|ok|not now|later|no thanks)$
+wait 3
 adclose
 shot 03-home
 tap (?i)^groups$
