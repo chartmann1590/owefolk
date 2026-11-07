@@ -38,6 +38,11 @@ object PremiumManager {
     private var productDetails: ProductDetails? = null
 
     fun start(context: Context) {
+        // Amazon Appstore build: no Google Play Billing; the app is free with ads and never premium.
+        if (com.charles.owefolk.BuildConfig.STORE == "amazon") {
+            _state.value = PremiumUiState(isLoading = false)
+            return
+        }
         if (billingClient != null) return
         val client = BillingClient.newBuilder(context)
             .setListener(::onPurchasesUpdated)
@@ -72,9 +77,10 @@ object PremiumManager {
         client.queryPurchasesAsync(params, purchasesResponseListener)
     }
 
-    fun isPremiumNow(): Boolean = _state.value.isSubscribed
+    fun isPremiumNow(): Boolean = com.charles.owefolk.BuildConfig.STORE != "amazon" && _state.value.isSubscribed
 
     fun launch(activity: Activity) {
+        if (com.charles.owefolk.BuildConfig.STORE == "amazon") return
         val details = productDetails
         val token = details?.subscriptionOfferDetails?.firstOrNull()?.offerToken
         if (details == null || token == null) return

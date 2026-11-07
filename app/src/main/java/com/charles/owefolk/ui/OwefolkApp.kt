@@ -154,7 +154,7 @@ private fun OwefolkAppContent(viewModel: AppViewModel) {
     val currentRoute = backStackEntry?.destination?.route
     val privacyOptionsRequired by AdsManager.privacyOptionsRequired.collectAsState()
     val premiumState by com.charles.owefolk.premium.PremiumManager.state.collectAsState()
-    val isPremium = premiumState.isSubscribed || dashboard.user.premiumActive
+    val isPremium = com.charles.owefolk.BuildConfig.STORE != "amazon" && (premiumState.isSubscribed || dashboard.user.premiumActive)
     val showTranslationBar = translationState.active && !disclaimerDismissed
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },

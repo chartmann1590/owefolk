@@ -1,0 +1,19 @@
+launch
+wait 20
+shot 01-launch
+taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it)$
+wait 3
+shot 02-auth
+swipeup
+shot 03-auth-scrolled
+swipedown
+tap (?i)continue with google|sign in with google|google
+wait 8
+shot 04-after-google-tap
+back
+wait 3
+shot 05-back
+stop
+launch
+wait 12
+shot 06-relaunch

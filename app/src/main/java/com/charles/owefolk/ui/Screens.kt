@@ -280,7 +280,7 @@ fun ProfileScreen(
     var chooseProvider by remember { mutableStateOf(false) }
     var editProvider by remember(user.preferredProvider) { mutableStateOf(user.preferredProvider) }
     var editHandle by remember(user.paymentHandle) { mutableStateOf(user.paymentHandle.orEmpty()) }
-    val isPremium = premiumState.isSubscribed || user.premiumActive
+    val isPremium = com.charles.owefolk.BuildConfig.STORE != "amazon" && (premiumState.isSubscribed || user.premiumActive)
     LazyColumn(
         Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -294,7 +294,10 @@ fun ProfileScreen(
                 }
             }
         }
-        item { PremiumCard(isPremium, premiumState, onUpgrade = onUpgradePremium, onRestore = onRestorePremium) }
+        // Amazon Appstore build: no premium card (no Play purchases; free with ads).
+        if (com.charles.owefolk.BuildConfig.STORE != "amazon") {
+            item { PremiumCard(isPremium, premiumState, onUpgrade = onUpgradePremium, onRestore = onRestorePremium) }
+        }
         item { SectionTitle(stringResource(R.string.profile_getting_paid)) }
         item {
             SettingsRow(
