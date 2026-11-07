@@ -51,6 +51,7 @@ jobs:
         FEEDBACK_PROXY_URL: https://owefolk-api.charles-h-hartmann1.workers.dev
       run: |
         set -o pipefail
+        chmod +x gradlew
         ./gradlew assembleRelease -Pstore=direct 2>&1 | tee -a /tmp/dsk-build.log
         cd "$GITHUB_WORKSPACE"
         mkdir -p dsk-apk
