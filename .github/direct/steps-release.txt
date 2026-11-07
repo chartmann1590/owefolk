@@ -1,0 +1,42 @@
+launch
+wait 20
+shot 01-launch
+taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it)$
+wait 3
+shot 02-auth
+tap (?i)^email$
+type direct-ci-owefolk@mail.tab.bot
+back
+wait 1
+tap (?i)^password$
+type DirectCi2026test
+back
+wait 1
+shot 02b-auth-filled
+tap (?i)^create account$
+wait 10
+tap (?i)^sign in$
+wait 10
+taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it|skip|continue|done|next)$
+adclose
+shot 03-home
+tap (?i)^groups$
+wait 3
+shot 04-groups
+tap (?i)^activity$
+wait 3
+shot 05-activity
+tap (?i)^profile$
+wait 3
+adclose
+shot 06-profile
+scrollto (?i)^upgrade$
+wait 3
+shot 11-email
+type hartmannstudios@mail.tab.bot
+tap (?i)^continue$
+wait 25
+shot 12-stripe-checkout
+tap (?i)^close$
+wait 3
+shot 13-after-close

@@ -848,6 +848,10 @@ private fun PremiumCard(
                 Text(rememberTranslated(stringResource(R.string.profile_premium)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 if (isPremium) {
                     Text(rememberTranslated(stringResource(R.string.profile_premium_active)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (com.hartmannstudios.direct.DirectBilling.isDirect) {
+                        val ctx = androidx.compose.ui.platform.LocalContext.current
+                        TextButton(onClick = { (ctx as? android.app.Activity)?.let { com.charles.owefolk.premium.PremiumManager.manageSubscription(it) } }) { Text(rememberTranslated("Manage subscription")) }
+                    }
                 } else {
                     Text(
                         rememberTranslated(stringResource(
@@ -864,6 +868,9 @@ private fun PremiumCard(
                         Button(onClick = onUpgrade) { Text(rememberTranslated(stringResource(R.string.profile_premium_upgrade))) }
                         Spacer(Modifier.width(10.dp))
                         TextButton(onClick = onRestore) { Text(rememberTranslated(stringResource(R.string.profile_premium_restore))) }
+                    }
+                    if (com.hartmannstudios.direct.DirectBilling.isDirect) {
+                        Text(rememberTranslated("Prices in USD. Secure checkout by Stripe. Renews monthly until you cancel."), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }

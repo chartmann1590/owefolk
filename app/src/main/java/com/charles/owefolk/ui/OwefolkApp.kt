@@ -218,7 +218,7 @@ private fun OwefolkAppContent(viewModel: AppViewModel) {
                     onLanguageSettings = { showLanguagePicker = true },
                     premiumState = premiumState,
                     onUpgradePremium = { (context as? Activity)?.let(com.charles.owefolk.premium.PremiumManager::launch) },
-                    onRestorePremium = { com.charles.owefolk.premium.PremiumManager.refreshSubscriptions() })
+                    onRestorePremium = { if (com.hartmannstudios.direct.DirectBilling.isDirect) com.charles.owefolk.premium.PremiumManager.restore(context as? Activity) else com.charles.owefolk.premium.PremiumManager.refreshSubscriptions() })
             }
             composable(PRIVACY_ROUTE) {
                 PrivacyPolicyScreen(onBack = { navController.popBackStack() })

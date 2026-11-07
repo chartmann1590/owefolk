@@ -1,0 +1,33 @@
+launch
+wait 20
+taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it)$
+wait 3
+shot 02-auth
+tap (?i)^email$
+type direct-ci-owefolk@mail.tab.bot
+back
+wait 1
+tap (?i)^password$
+type DirectCi2026test
+back
+wait 1
+shot 02b-auth-filled
+tap (?i)^create account$
+wait 10
+tap (?i)^sign in$
+wait 10
+taploop (?i)^(allow|ok|not now|later|maybe later|no thanks|accept|agree|consent|got it|skip|continue|done|next)$
+adclose
+shot 20-home
+tap (?i)^profile$
+wait 3
+adclose
+scrollto (?i)^restore purchases$
+wait 3
+shot 21-restore-email
+type hartmannstudios@mail.tab.bot
+tap (?i)^continue$
+wait 15
+shot 22-after-restore
+shot 23-profile-premium
+sh logcat -d -s DirectBilling

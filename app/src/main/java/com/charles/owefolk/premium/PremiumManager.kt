@@ -14,6 +14,7 @@ import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.charles.owefolk.observability.Telemetry
+import com.hartmannstudios.direct.DirectBilling
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +38,13 @@ object PremiumManager {
     @Volatile
     private var productDetails: ProductDetails? = null
 
+    // Stripe catalog key (shared Hartmann Studios billing worker, app "owefolk")
+    const val DIRECT_MONTHLY = "owefolk_premium_monthly"
+    private const val DIRECT_PRICE = "$2.99"
+    @Volatile private var directStarted = false
+
     fun start(context: Context) {
+        if (DirectBilling.isDirect) { startDirect(context); return }
         if (billingClient != null) return
         val client = BillingClient.newBuilder(context)
             .setListener(::onPurchasesUpdated)
@@ -64,7 +71,31 @@ object PremiumManager {
         })
     }
 
+    // ── Direct (GitHub / charleshartmann.com) build: Stripe Checkout through DirectBilling instead of Google Play ──
+    private fun startDirect(context: Context) {
+        if (directStarted) return
+        directStarted = true
+        DirectBilling.init(context.applicationContext, "owefolk")
+        DirectBilling.addListener { updateDirect() }
+        updateDirect()
+    }
+
+    private fun updateDirect() {
+        _state.value = _state.value.copy(isLoading = false, productPrice = DIRECT_PRICE, isSubscribed = DirectBilling.isEntitled(DIRECT_MONTHLY))
+    }
+
+    /** Restore: direct builds look the Stripe purchase up by email; Play builds re-query Google Play. */
+    fun restore(activity: Activity?) {
+        if (DirectBilling.isDirect && activity != null) DirectBilling.restore(activity) else refreshSubscriptions()
+    }
+
+    /** Direct builds: Stripe customer portal (cancel / update card). */
+    fun manageSubscription(activity: Activity) {
+        if (DirectBilling.isDirect) DirectBilling.manageSubscription(activity)
+    }
+
     fun refreshSubscriptions() {
+        if (DirectBilling.isDirect) { updateDirect(); return }
         val client = billingClient ?: return
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
@@ -75,6 +106,7 @@ object PremiumManager {
     fun isPremiumNow(): Boolean = _state.value.isSubscribed
 
     fun launch(activity: Activity) {
+        if (DirectBilling.isDirect) { DirectBilling.purchase(activity, DIRECT_MONTHLY); return }
         val details = productDetails
         val token = details?.subscriptionOfferDetails?.firstOrNull()?.offerToken
         if (details == null || token == null) return
