@@ -25,6 +25,8 @@ wait 1
 type Alex
 back
 wait 1
+launch
+wait 6
 tap (?i)^continue$
 wait 3
 shot 02d-payment
