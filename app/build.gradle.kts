@@ -71,8 +71,8 @@ android {
         applicationId = "com.charles.owefolk"
         minSdk = 26
         targetSdk = 36
-        versionCode = 13
-        versionName = "0.8.3"
+        versionCode = 263150232
+        versionName = "0.8.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
